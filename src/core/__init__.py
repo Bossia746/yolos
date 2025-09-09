@@ -2,16 +2,12 @@
 
 from .plugin_manager import (
     PluginManager,
-    PluginInfo,
-    PluginState,
-    PluginError,
-    PluginLoadError,
-    PluginExecutionError
+    PluginDependencyError,
+    PluginLoadError
 )
 
 from .config_manager import (
     ConfigManager,
-    ConfigError,
     ConfigValidationError
 )
 
@@ -34,23 +30,18 @@ from .storage_factory import (
     create_data_manager_for_platform
 )
 
-from .resource_manager import ResourceManager
 from .event_bus import EventBus
 from .base_plugin import BasePlugin
-from .hardware_abstraction import HardwareAbstraction
+from .cross_platform_manager import CrossPlatformManager, get_cross_platform_manager
 
 __all__ = [
     # 插件管理
     'PluginManager',
-    'PluginInfo',
-    'PluginState',
-    'PluginError',
+    'PluginDependencyError',
     'PluginLoadError',
-    'PluginExecutionError',
     
     # 配置管理
     'ConfigManager',
-    'ConfigError',
     'ConfigValidationError',
     
     # 数据存储
@@ -71,8 +62,8 @@ __all__ = [
     'create_data_manager_for_platform',
     
     # 其他核心模块
-    'ResourceManager',
     'EventBus',
     'BasePlugin',
-    'HardwareAbstraction'
+    'CrossPlatformManager',
+    'get_cross_platform_manager'
 ]

@@ -10,7 +10,7 @@
 import os
 import yaml
 import platform
-from typing import Dict, Any, Optional, Type
+from typing import Dict, Any, Optional, Type, List
 from pathlib import Path
 import logging
 from dataclasses import dataclass

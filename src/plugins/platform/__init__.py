@@ -11,16 +11,16 @@
 
 from .esp32_plugin import ESP32Plugin
 from .raspberry_pi_plugin import RaspberryPiPlugin
-from .ros_plugin import ROSPlugin
-from .windows_plugin import WindowsPlugin
-from .linux_plugin import LinuxPlugin
-from .macos_plugin import MacOSPlugin
+from .ros_integration import ROSHybridRecognitionNode, ROS1HybridRecognitionNode, ROS2HybridRecognitionNode, create_ros_node
+from .aiot_boards_adapter import AIoTBoardsAdapter, get_aiot_boards_adapter
 
 __all__ = [
     'ESP32Plugin',
     'RaspberryPiPlugin', 
-    'ROSPlugin',
-    'WindowsPlugin',
-    'LinuxPlugin',
-    'MacOSPlugin'
+    'ROSHybridRecognitionNode',
+    'ROS1HybridRecognitionNode',
+    'ROS2HybridRecognitionNode',
+    'create_ros_node',
+    'AIoTBoardsAdapter',
+    'get_aiot_boards_adapter'
 ]

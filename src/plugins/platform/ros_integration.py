@@ -48,6 +48,71 @@ elif ROS_VERSION == '2':
 else:
     ROS1_AVAILABLE = False
     ROS2_AVAILABLE = False
+    # Fallback imports for testing without ROS
+    try:
+        from sensor_msgs.msg import Image, CompressedImage
+        from std_msgs.msg import String, Header
+        from geometry_msgs.msg import Point, Pose2D
+    except ImportError:
+        # Create dummy classes for testing
+        class Image:
+            def __init__(self):
+                self.header = None
+                self.data = None
+        
+        class CompressedImage:
+            def __init__(self):
+                self.header = None
+                self.data = None
+        
+        class String:
+            def __init__(self):
+                self.data = ""
+        
+        class Header:
+            def __init__(self):
+                self.stamp = None
+                self.frame_id = ""
+        
+        class Point:
+            def __init__(self):
+                self.x = 0.0
+                self.y = 0.0
+                self.z = 0.0
+        
+        class Pose2D:
+            def __init__(self):
+                self.x = 0.0
+                self.y = 0.0
+                self.theta = 0.0
+        
+        # Dummy Node class for ROS2
+        class Node:
+            def __init__(self, node_name):
+                self.node_name = node_name
+            
+            def create_subscription(self, *args, **kwargs):
+                pass
+            
+            def create_publisher(self, *args, **kwargs):
+                pass
+            
+            def get_logger(self):
+                return logger
+        
+        # Dummy CvBridge class
+        class CvBridge:
+            def __init__(self):
+                pass
+            
+            def imgmsg_to_cv2(self, msg, encoding="bgr8"):
+                # Return a dummy image for testing
+                return np.zeros((480, 640, 3), dtype=np.uint8)
+            
+            def cv2_to_imgmsg(self, cv_image, encoding="bgr8"):
+                # Return a dummy message for testing
+                msg = Image()
+                return msg
 
 # 导入混合识别系统
 try:

@@ -1,0 +1,26 @@
+{
+  "platform": {
+    "name": "esp32",
+    "description": "ESP32微控制器版本",
+    "version": "1.0.0"
+  },
+  "model": {
+    "format": "tflite_micro",
+    "input_size": [
+      640,
+      640
+    ],
+    "confidence_threshold": 0.5,
+    "nms_threshold": 0.4
+  },
+  "camera": {
+    "width": 640,
+    "height": 480,
+    "fps": 30
+  },
+  "performance": {
+    "max_fps": 30,
+    "batch_size": 1,
+    "num_threads": 1
+  }
+}

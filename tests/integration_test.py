@@ -37,8 +37,8 @@ class IntegrationTestResult:
 class PluginIntegrationTest(BaseTest):
     """插件集成测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         self.loaded_plugins = {}
@@ -247,8 +247,8 @@ class PluginIntegrationTest(BaseTest):
 class SystemIntegrationTest(BaseTest):
     """系统集成测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         
@@ -429,8 +429,8 @@ class SystemIntegrationTest(BaseTest):
 class PlatformIntegrationTest(BaseTest):
     """平台集成测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         
     def test_cross_platform_compatibility(self, platforms: List[str]) -> IntegrationTestResult:
@@ -561,8 +561,8 @@ class PlatformIntegrationTest(BaseTest):
 class PerformanceIntegrationTest(BaseTest):
     """性能集成测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         

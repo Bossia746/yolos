@@ -53,8 +53,8 @@ class PerformanceTestResult:
 class FrameRateTest(BaseTest):
     """帧率测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         
@@ -266,8 +266,8 @@ class FrameRateTest(BaseTest):
 class MemoryUsageTest(BaseTest):
     """内存使用测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         
@@ -466,8 +466,8 @@ class MemoryUsageTest(BaseTest):
 class CPUUsageTest(BaseTest):
     """CPU使用测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         
@@ -564,8 +564,8 @@ class CPUUsageTest(BaseTest):
 class LatencyTest(BaseTest):
     """延迟测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         
@@ -661,8 +661,8 @@ class LatencyTest(BaseTest):
 class LoadTest(BaseTest):
     """负载测试"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName)
         self.test_config = TestConfig()
         self.mock_data = MockDataGenerator()
         

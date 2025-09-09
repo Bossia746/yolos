@@ -1,0 +1,209 @@
+# YOLOS Performance Configuration
+# 性能监控配置文件
+
+# 监控设置
+monitoring:
+  enabled: true
+  interval_seconds: 5  # 监控间隔（秒）
+  detailed_logging: false  # 详细日志记录
+  auto_start: true  # 自动启动监控
+
+# 性能阈值设置
+thresholds:
+  cpu_usage: 80.0  # CPU使用率阈值（%）
+  memory_usage: 85.0  # 内存使用率阈值（%）
+  disk_usage: 90.0  # 磁盘使用率阈值（%）
+  inference_time: 100.0  # 推理时间阈值（毫秒）
+  frame_rate_min: 15.0  # 最低帧率阈值
+  gpu_usage: 90.0  # GPU使用率阈值（%）
+  gpu_memory: 95.0  # GPU内存使用率阈值（%）
+  network_latency: 50.0  # 网络延迟阈值（毫秒）
+
+# 优化设置
+optimization:
+  auto_optimize: true  # 自动优化
+  memory_cleanup_interval: 300  # 内存清理间隔（秒）
+  gc_threshold_adjustment: true  # 垃圾回收阈值调整
+  cpu_affinity_optimization: false  # CPU亲和性优化
+  
+  # 内存优化策略
+  memory_strategies:
+    - garbage_collection
+    - cache_cleanup
+    - buffer_optimization
+  
+  # CPU优化策略
+  cpu_strategies:
+    - process_priority
+    - thread_optimization
+    - batch_processing
+  
+  # 推理优化策略
+  inference_strategies:
+    - model_quantization
+    - batch_inference
+    - tensor_optimization
+    - cache_reuse
+
+# 内存分析设置
+memory_profiling:
+  enabled: false  # 启用内存分析
+  snapshot_interval: 60  # 快照间隔（秒）
+  max_snapshots: 100  # 最大快照数量
+  track_allocations: true  # 跟踪内存分配
+  
+# 告警设置
+alerting:
+  enabled: true
+  max_alerts: 100  # 最大告警数量
+  
+  # 告警级别
+  severity_levels:
+    low:
+      threshold_multiplier: 1.0
+      notification: false
+    medium:
+      threshold_multiplier: 1.1
+      notification: true
+    high:
+      threshold_multiplier: 1.2
+      notification: true
+    critical:
+      threshold_multiplier: 1.5
+      notification: true
+      
+  # 通知设置
+  notifications:
+    email:
+      enabled: false
+      smtp_server: "smtp.gmail.com"
+      smtp_port: 587
+      username: ""
+      password: ""
+      recipients: []
+    
+    webhook:
+      enabled: false
+      url: ""
+      headers: {}
+
+# 指标收集设置
+metrics_collection:
+  # 系统指标
+  system:
+    cpu: true
+    memory: true
+    disk: true
+    network: true
+    processes: true
+    
+  # GPU指标
+  gpu:
+    enabled: true
+    nvidia_smi: true  # 使用nvidia-smi
+    gputil: true  # 使用GPUtil库
+    
+  # 应用指标
+  application:
+    inference_time: true
+    frame_rate: true
+    model_accuracy: true
+    detection_count: true
+    processing_queue: true
+
+# 数据存储设置
+storage:
+  # 指标数据保留
+  retention:
+    memory_metrics: 1000  # 内存中保留的指标数量
+    disk_storage: false  # 磁盘存储
+    storage_path: "./performance_data"
+    
+  # 导出设置
+  export:
+    auto_export: false
+    export_interval: 3600  # 自动导出间隔（秒）
+    export_format: "json"  # json, yaml, csv
+    export_path: "./exports"
+
+# 可视化设置
+visualization:
+  enabled: false
+  dashboard_port: 8080
+  real_time_updates: true
+  
+  # 图表设置
+  charts:
+    cpu_usage:
+      enabled: true
+      type: "line"
+      time_window: 300  # 时间窗口（秒）
+    
+    memory_usage:
+      enabled: true
+      type: "line"
+      time_window: 300
+    
+    inference_time:
+      enabled: true
+      type: "histogram"
+      bins: 50
+    
+    frame_rate:
+      enabled: true
+      type: "gauge"
+      min_value: 0
+      max_value: 60
+
+# 基准测试设置
+benchmarking:
+  enabled: false
+  
+  # 测试套件
+  test_suites:
+    inference_benchmark:
+      enabled: true
+      test_images: 100
+      batch_sizes: [1, 4, 8, 16]
+      model_variants: ["yolov8n", "yolov8s", "yolov8m"]
+    
+    memory_benchmark:
+      enabled: true
+      test_duration: 300  # 测试持续时间（秒）
+      memory_stress: true
+    
+    cpu_benchmark:
+      enabled: true
+      cpu_stress: true
+      multi_threading: true
+
+# 平台特定设置
+platform_specific:
+  # Windows设置
+  windows:
+    performance_counters: true
+    wmi_monitoring: false
+    
+  # Linux设置
+  linux:
+    proc_monitoring: true
+    cgroup_monitoring: false
+    
+  # macOS设置
+  macos:
+    activity_monitor: true
+    instruments_integration: false
+
+# 调试设置
+debugging:
+  enabled: false
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  performance_logging: false
+  trace_function_calls: false
+  
+# 实验性功能
+experimental:
+  ml_based_optimization: false  # 基于机器学习的优化
+  predictive_scaling: false  # 预测性扩展
+  adaptive_thresholds: false  # 自适应阈值
+  quantum_optimization: false  # 量子优化（未来功能）

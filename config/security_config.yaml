@@ -1,0 +1,211 @@
+# YOLOS Security Configuration
+# 安全配置文件 - 生产环境必须启用所有安全特性
+
+# API 安全配置
+api_security:
+  # 认证配置
+  authentication:
+    enabled: true
+    method: "jwt"  # jwt, oauth2, api_key
+    jwt:
+      secret_key: "${JWT_SECRET_KEY}"  # 从环境变量获取
+      algorithm: "HS256"
+      expiration_hours: 24
+      refresh_token_enabled: true
+      refresh_expiration_days: 7
+    
+    # API Key 认证（备选方案）
+    api_key:
+      enabled: false
+      header_name: "X-API-Key"
+      key_length: 32
+      expiration_days: 90
+  
+  # 授权配置
+  authorization:
+    enabled: true
+    rbac_enabled: true  # 基于角色的访问控制
+    roles:
+      admin:
+        permissions: ["*"]
+        description: "系统管理员"
+      operator:
+        permissions: ["detection:*", "camera:*", "config:read"]
+        description: "操作员"
+      viewer:
+        permissions: ["detection:read", "camera:read"]
+        description: "查看者"
+      medical:
+        permissions: ["medical:*", "detection:medical"]
+        description: "医疗专业人员"
+  
+  # 访问控制
+  access_control:
+    # IP 白名单
+    ip_whitelist:
+      enabled: false
+      allowed_ips: ["127.0.0.1", "192.168.1.0/24"]
+    
+    # 速率限制
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 60
+      burst_limit: 10
+      per_ip_limit: true
+    
+    # CORS 配置
+    cors:
+      enabled: true
+      allowed_origins: ["https://localhost:3000"]
+      allowed_methods: ["GET", "POST", "PUT", "DELETE"]
+      allowed_headers: ["Content-Type", "Authorization"]
+      max_age: 3600
+
+# 数据保护配置
+data_protection:
+  # 加密配置
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+    key_rotation_days: 90
+    
+  # 数据脱敏
+  data_masking:
+    enabled: true
+    pii_fields: ["name", "phone", "email", "id_card"]
+    medical_fields: ["diagnosis", "symptoms", "treatment"]
+  
+  # 数据备份加密
+  backup_encryption:
+    enabled: true
+    compression: true
+    retention_days: 365
+
+# 会话安全
+session_security:
+  # 会话配置
+  session:
+    secure_cookies: true
+    httponly_cookies: true
+    samesite: "strict"
+    timeout_minutes: 30
+    
+  # 并发会话限制
+  concurrent_sessions:
+    enabled: true
+    max_sessions_per_user: 3
+    
+# 审计日志
+audit_logging:
+  enabled: true
+  log_level: "INFO"
+  log_file: "logs/security_audit.log"
+  
+  # 记录的事件类型
+  events:
+    authentication: true
+    authorization: true
+    data_access: true
+    configuration_changes: true
+    system_events: true
+  
+  # 日志轮转
+  rotation:
+    max_size_mb: 100
+    backup_count: 10
+    compress: true
+
+# 医疗数据安全（HIPAA 合规）
+medical_security:
+  # HIPAA 合规配置
+  hipaa_compliance:
+    enabled: true
+    minimum_necessary: true  # 最小必要原则
+    access_logging: true
+    data_integrity_checks: true
+  
+  # 患者数据保护
+  patient_data:
+    encryption_at_rest: true
+    encryption_in_transit: true
+    anonymization: true
+    retention_policy:
+      default_days: 2555  # 7年
+      emergency_days: 3650  # 10年
+  
+  # 医疗设备安全
+  device_security:
+    certificate_validation: true
+    secure_communication: true
+    device_authentication: true
+
+# 网络安全
+network_security:
+  # TLS/SSL 配置
+  tls:
+    enabled: true
+    min_version: "1.2"
+    cipher_suites: [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "ECDHE-RSA-AES128-GCM-SHA256"
+    ]
+    
+  # 证书配置
+  certificates:
+    auto_renewal: true
+    validation_strict: true
+    
+# 安全监控
+security_monitoring:
+  # 入侵检测
+  intrusion_detection:
+    enabled: true
+    failed_login_threshold: 5
+    suspicious_activity_detection: true
+    
+  # 异常检测
+  anomaly_detection:
+    enabled: true
+    baseline_learning_days: 7
+    sensitivity: "medium"  # low, medium, high
+    
+  # 告警配置
+  alerts:
+    enabled: true
+    email_notifications: true
+    webhook_notifications: false
+    alert_levels: ["critical", "high", "medium"]
+
+# 合规性配置
+compliance:
+  # 数据保护法规
+  gdpr:
+    enabled: true
+    data_subject_rights: true
+    consent_management: true
+    
+  # 医疗法规
+  medical_regulations:
+    fda_compliance: true
+    ce_marking: true
+    iso_13485: true
+
+# 开发环境安全（仅开发时启用）
+development_security:
+  debug_mode: false
+  test_accounts_disabled: true
+  security_headers_enforced: true
+  
+# 生产环境强化
+production_hardening:
+  # 系统强化
+  system:
+    disable_debug_endpoints: true
+    remove_default_accounts: true
+    secure_file_permissions: true
+    
+  # 服务强化
+  services:
+    disable_unnecessary_services: true
+    secure_service_accounts: true
+    network_segmentation: true

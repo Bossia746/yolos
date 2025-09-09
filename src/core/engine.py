@@ -128,7 +128,7 @@ class YOLOSEngine:
     
     def _initialize_detector(self):
         """初始化检测器"""
-        from ..detection import DetectorFactory
+        from ..detection.factory import DetectorFactory
         
         detector_config = self.config.detection_config
         detector_type = detector_config.get('type', 'yolo')
@@ -138,7 +138,7 @@ class YOLOSEngine:
     
     def _initialize_recognizer(self):
         """初始化识别器"""
-        from ..recognition import RecognizerFactory
+        from ..recognition.factory import RecognizerFactory
         
         recognizer_config = self.config.recognition_config
         recognizer_types = recognizer_config.get('types', ['face', 'gesture', 'object'])
@@ -150,7 +150,7 @@ class YOLOSEngine:
     
     def _initialize_preprocessor(self):
         """初始化预处理器"""
-        from ..preprocessing import PreprocessorFactory
+        from ..preprocessing.factory import PreprocessorFactory
         
         preprocess_config = self.config.preprocessing_config
         self._preprocessor = PreprocessorFactory.create_preprocessor(preprocess_config)
@@ -158,7 +158,7 @@ class YOLOSEngine:
     
     def _initialize_postprocessor(self):
         """初始化后处理器"""
-        from ..postprocessing import PostprocessorFactory
+        from ..postprocessing.factory import PostprocessorFactory
         
         postprocess_config = self.config.postprocessing_config
         self._postprocessor = PostprocessorFactory.create_postprocessor(postprocess_config)

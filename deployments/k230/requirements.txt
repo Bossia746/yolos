@@ -1,0 +1,3 @@
+nncase
+opencv-python
+canmv

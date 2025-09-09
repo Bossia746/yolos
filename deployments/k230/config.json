@@ -1,0 +1,26 @@
+{
+  "platform": {
+    "name": "k230",
+    "description": "K230 AI开发板版本",
+    "version": "1.0.0"
+  },
+  "model": {
+    "format": "kmodel",
+    "input_size": [
+      640,
+      640
+    ],
+    "confidence_threshold": 0.5,
+    "nms_threshold": 0.4
+  },
+  "camera": {
+    "width": 640,
+    "height": 480,
+    "fps": 30
+  },
+  "performance": {
+    "max_fps": 30,
+    "batch_size": 1,
+    "num_threads": 4
+  }
+}

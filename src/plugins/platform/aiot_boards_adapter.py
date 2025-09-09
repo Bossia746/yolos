@@ -540,7 +540,48 @@ class AIoTBoardsAdapter:
                     'quantization': True,
                     'stm32cube_ai': True,
                     'cross_platform': True,
-                    'ecosystem_support': True
+                    'ecosystem_support': True,
+                    'camera_dcmi': True
+                }
+            },
+            
+            # ===== 新增支持摄像头的开发板 =====
+            'hikey_970': {
+                'name': 'HiKey 970',
+                'manufacturer': 'HiSilicon',
+                'cpu': 'Kirin 970 (4x Cortex-A73 + 4x Cortex-A53)',
+                'gpu': 'Mali-G72 MP12',
+                'memory': '6GB LPDDR4X',
+                'ai_accelerator': 'NPU (Neural Processing Unit)',
+                'os_support': ['Android', 'Ubuntu'],
+                'detection_methods': ['/proc/cpuinfo'],
+                'keywords': ['hikey', '970', 'kirin'],
+                'capabilities': {
+                    'deep_learning': True,
+                    'npu_acceleration': True,
+                    'mali_gpu': True,
+                    'camera_mipi': True,
+                    'gpio': True,
+                    'high_performance': True
+                }
+            },
+            
+            'odroid_n2': {
+                'name': 'ODROID-N2',
+                'manufacturer': 'Hardkernel',
+                'cpu': 'Amlogic S922X (4x Cortex-A73 + 2x Cortex-A53)',
+                'gpu': 'Mali-G52 MP6',
+                'memory': '2GB/4GB DDR4',
+                'ai_accelerator': None,
+                'os_support': ['Ubuntu', 'Android'],
+                'detection_methods': ['/proc/cpuinfo'],
+                'keywords': ['odroid', 'n2', 's922x'],
+                'capabilities': {
+                    'deep_learning': True,
+                    'mali_gpu': True,
+                    'camera_mipi': True,
+                    'gpio': True,
+                    'cost_effective': True
                 }
             }
         }
