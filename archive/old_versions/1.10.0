@@ -1,0 +1,6 @@
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple
+Collecting scipy
+  Using cached https://pypi.tuna.tsinghua.edu.cn/packages/14/c3/61f273ae550fbf1667675701112e380881905e28448c080b23b5a181df7c/scipy-1.16.1-cp312-cp312-win_amd64.whl (38.5 MB)
+Requirement already satisfied: numpy<2.6,>=1.25.2 in c:\mygit\yolos\yolos_env\lib\site-packages (from scipy) (2.3.2)
+Installing collected packages: scipy
+Successfully installed scipy-1.16.1

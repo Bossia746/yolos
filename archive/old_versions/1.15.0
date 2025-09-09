@@ -1,0 +1,12 @@
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple
+Collecting onnx
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/a7/2e/3ff480a8c1fa7939662bdc973e41914add2d4a1f2b8572a3c39c2e4982e5/onnx-1.19.0-cp312-cp312-win_amd64.whl (16.5 MB)
+     --------------------------------------- 16.5/16.5 MB 49.4 MB/s eta 0:00:00
+Requirement already satisfied: numpy>=1.22 in c:\mygit\yolos\yolos_env\lib\site-packages (from onnx) (2.3.2)
+Collecting protobuf>=4.25.1 (from onnx)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/e1/59/0a820b7310f8139bd8d5a9388e6a38e1786d179d6f33998448609296c229/protobuf-6.32.0-cp310-abi3-win_amd64.whl (435 kB)
+Requirement already satisfied: typing_extensions>=4.7.1 in c:\mygit\yolos\yolos_env\lib\site-packages (from onnx) (4.15.0)
+Collecting ml_dtypes (from onnx)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/50/c1/85e6be4fc09c6175f36fb05a45917837f30af9a5146a5151cb3a3f0f9e09/ml_dtypes-0.5.3-cp312-cp312-win_amd64.whl (208 kB)
+Installing collected packages: protobuf, ml_dtypes, onnx
+Successfully installed ml_dtypes-0.5.3 onnx-1.19.0 protobuf-6.32.0

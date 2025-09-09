@@ -1,0 +1,34 @@
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple
+Collecting albumentations
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/8e/64/013409c451a44b61310fb757af4527f3de57fc98a00f40448de28b864290/albumentations-2.0.8-py3-none-any.whl (369 kB)
+Requirement already satisfied: numpy>=1.24.4 in c:\mygit\yolos\yolos_env\lib\site-packages (from albumentations) (1.26.4)
+Requirement already satisfied: scipy>=1.10.0 in c:\mygit\yolos\yolos_env\lib\site-packages (from albumentations) (1.16.1)
+Requirement already satisfied: PyYAML in c:\mygit\yolos\yolos_env\lib\site-packages (from albumentations) (6.0.2)
+Collecting pydantic>=2.9.2 (from albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/6a/c0/ec2b1c8712ca690e5d61979dee872603e92b8a32f94cc1b72d53beab008a/pydantic-2.11.7-py3-none-any.whl (444 kB)
+Collecting albucore==0.0.24 (from albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/0a/e2/91f145e1f32428e9e1f21f46a7022ffe63d11f549ee55c3b9265ff5207fc/albucore-0.0.24-py3-none-any.whl (15 kB)
+Collecting opencv-python-headless>=4.9.0.80 (from albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/f2/35/0858e9e71b36948eafbc5e835874b63e515179dc3b742cbe3d76bc683439/opencv_python_headless-4.12.0.88-cp37-abi3-win_amd64.whl (38.9 MB)
+     --------------------------------------- 38.9/38.9 MB 72.8 MB/s eta 0:00:00
+Collecting stringzilla>=3.10.4 (from albucore==0.0.24->albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/dd/6d/597aba8e933a59e8e10f75838af30d68831eb62f114edab7b1af9908d59e/stringzilla-3.12.6-cp312-cp312-win_amd64.whl (79 kB)
+Collecting simsimd>=5.9.2 (from albucore==0.0.24->albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/5c/db/e458ae93987726f5b255148b259274c39e6f15b9d1158a0f0fa467539aa3/simsimd-6.5.3-cp312-cp312-win_amd64.whl (94 kB)
+Collecting numpy>=1.24.4 (from albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/36/fa/8c9210162ca1b88529ab76b41ba02d433fd54fecaf6feb70ef9f124683f1/numpy-2.2.6-cp312-cp312-win_amd64.whl (12.6 MB)
+     --------------------------------------- 12.6/12.6 MB 71.8 MB/s eta 0:00:00
+Collecting annotated-types>=0.6.0 (from pydantic>=2.9.2->albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Collecting pydantic-core==2.33.2 (from pydantic>=2.9.2->albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/43/e4/5479fecb3606c1368d496a825d8411e126133c41224c1e7238be58b87d7e/pydantic_core-2.33.2-cp312-cp312-win_amd64.whl (2.0 MB)
+     ---------------------------------------- 2.0/2.0 MB 105.9 MB/s eta 0:00:00
+Requirement already satisfied: typing-extensions>=4.12.2 in c:\mygit\yolos\yolos_env\lib\site-packages (from pydantic>=2.9.2->albumentations) (4.15.0)
+Collecting typing-inspection>=0.4.0 (from pydantic>=2.9.2->albumentations)
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/17/69/cd203477f944c353c31bade965f880aa1061fd6bf05ded0726ca845b6ff7/typing_inspection-0.4.1-py3-none-any.whl (14 kB)
+Installing collected packages: stringzilla, simsimd, typing-inspection, pydantic-core, numpy, annotated-types, pydantic, opencv-python-headless, albucore, albumentations
+  Attempting uninstall: numpy
+    Found existing installation: numpy 1.26.4
+    Uninstalling numpy-1.26.4:
+      Successfully uninstalled numpy-1.26.4
+Successfully installed albucore-0.0.24 albumentations-2.0.8 annotated-types-0.7.0 numpy-2.2.6 opencv-python-headless-4.12.0.88 pydantic-2.11.7 pydantic-core-2.33.2 simsimd-6.5.3 stringzilla-3.12.6 typing-inspection-0.4.1

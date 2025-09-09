@@ -300,6 +300,28 @@ warning = default_logger.warning
 error = default_logger.error
 critical = default_logger.critical
 
+# 兼容性类 - 为了向后兼容
+class LoggingManager:
+    """日志管理器 - 兼容性包装"""
+    
+    def __init__(self, name: str = "yolos"):
+        self.logger = get_logger(name)
+    
+    def get_logger(self):
+        return self.logger
+    
+    def debug(self, message: str, **kwargs):
+        return self.logger.debug(message, **kwargs)
+    
+    def info(self, message: str, **kwargs):
+        return self.logger.info(message, **kwargs)
+    
+    def warning(self, message: str, **kwargs):
+        return self.logger.warning(message, **kwargs)
+    
+    def error(self, message: str, exception: Optional[Exception] = None, **kwargs):
+        return self.logger.error(message, exception, **kwargs)
+
 if __name__ == "__main__":
     # 测试日志系统
     logger = get_logger("test")

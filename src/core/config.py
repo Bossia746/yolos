@@ -28,13 +28,26 @@ class CameraConfig:
 @dataclass
 class DetectionConfig:
     """检测配置"""
-    type: str = "yolo"  # yolo, traditional
-    model_path: str = "models/yolov5s.pt"
-    confidence_threshold: float = 0.5
-    nms_threshold: float = 0.4
+    type: str = "yolov11"  # yolo, yolov11, traditional
+    model_path: str = "models/yolov11s.pt"
+    model_size: str = "s"  # n, s, m, l, x
+    confidence_threshold: float = 0.25
+    nms_threshold: float = 0.45
+    iou_threshold: float = 0.45
     max_detections: int = 100
     input_size: int = 640
     device: str = "auto"  # auto, cpu, cuda
+    
+    # YOLOv11优化配置
+    half_precision: bool = True
+    tensorrt_optimize: bool = True
+    edge_optimization: bool = False
+    adaptive_inference: bool = True
+    
+    # 性能配置
+    target_fps: float = 30.0
+    detection_interval: int = 1
+    batch_size: int = 1
     
     # 传统CV检测配置
     color_detection: Dict[str, Any] = field(default_factory=lambda: {

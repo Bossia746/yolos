@@ -1,0 +1,436 @@
+# YOLOS 本地大模型配置文件
+# Local LLM Configuration
+
+# 本地大模型服务配置
+local_llm:
+  # 服务基础配置
+  enabled: true
+  service_name: "YOLOS Local LLM Service"
+  version: "1.0.0"
+  
+  # 服务器配置
+  server:
+    host: "localhost"
+    port: 11434                      # Ollama默认端口
+    base_url: "http://localhost:11434"
+    timeout: 60
+    max_retries: 3
+    retry_delay: 2.0
+    
+  # 模型配置
+  models:
+    # 主要视觉模型
+    primary_vision_model:
+      name: "llava:13b"              # LLaVA 13B模型
+      enabled: true
+      max_tokens: 2048
+      temperature: 0.1
+      top_p: 0.9
+      context_length: 4096
+      
+    # 备用视觉模型
+    fallback_vision_model:
+      name: "llava:7b"               # LLaVA 7B模型
+      enabled: true
+      max_tokens: 1024
+      temperature: 0.2
+      top_p: 0.8
+      context_length: 2048
+      
+    # 文本分析模型
+    text_analysis_model:
+      name: "qwen2:7b"               # 通义千问2 7B
+      enabled: true
+      max_tokens: 1024
+      temperature: 0.1
+      top_p: 0.9
+      
+    # 医疗专用模型
+    medical_model:
+      name: "meditron:7b"            # 医疗专用模型
+      enabled: false                 # 需要单独下载
+      max_tokens: 1024
+      temperature: 0.05              # 医疗场景需要更保守
+      top_p: 0.8
+      
+  # 模型自动下载配置
+  auto_download:
+    enabled: true
+    download_on_startup: true
+    models_to_download:
+      - "llava:13b"
+      - "llava:7b"
+      - "qwen2:7b"
+    download_timeout: 1800           # 30分钟下载超时
+    
+  # 负载均衡配置
+  load_balancing:
+    enabled: true
+    strategy: "round_robin"          # round_robin/least_connections/weighted
+    health_check_interval: 30
+    
+  # 缓存配置
+  cache:
+    enabled: true
+    cache_size: 1000
+    cache_ttl: 3600                  # 1小时
+    cache_key_strategy: "image_hash"
+    
+# 图像处理配置
+image_processing:
+  # 支持的格式
+  supported_formats:
+    - "jpg"
+    - "jpeg"
+    - "png"
+    - "bmp"
+    - "tiff"
+    - "webp"
+    - "gif"
+    
+  # 图像预处理
+  preprocessing:
+    enabled: true
+    resize_enabled: true
+    max_width: 1024
+    max_height: 1024
+    quality_enhancement: true
+    noise_reduction: true
+    contrast_enhancement: true
+    
+  # 图像编码
+  encoding:
+    format: "base64"
+    compression_quality: 85
+    max_file_size_mb: 10
+    
+# 提示词配置
+prompts:
+  # 系统提示词
+  system_prompt: |
+    你是YOLOS智能识别系统的视觉分析专家。你的任务是准确分析图像内容，特别关注以下方面：
+    
+    1. 医疗健康相关内容（药物、医疗器械、健康状态）
+    2. 安全监控场景（跌倒检测、异常行为、危险物品）
+    3. 日常生活物品识别
+    4. 人员和动物识别
+    5. 环境安全评估
+    
+    请始终提供准确、详细、有用的分析结果。
+    
+  # 详细分析提示词
+  detailed_analysis_prompt: |
+    请对这张图像进行详细分析，并按照以下JSON格式返回结果：
+    
+    {
+      "scene_description": "详细的场景描述",
+      "detected_objects": [
+        {
+          "name": "对象名称",
+          "confidence": 0.95,
+          "category": "对象类别",
+          "attributes": ["属性1", "属性2"],
+          "location": "位置描述",
+          "size": "大小描述"
+        }
+      ],
+      "scene_category": "场景类别",
+      "overall_confidence": 0.85,
+      "safety_assessment": {
+        "safety_level": "safe/warning/danger",
+        "risk_factors": ["风险因素"],
+        "recommendations": ["安全建议"]
+      },
+      "medical_relevance": {
+        "medical_content": true/false,
+        "medical_category": "药物/器械/症状/其他",
+        "urgency_level": "low/medium/high/critical",
+        "medical_advice": ["医疗建议"]
+      },
+      "technical_details": {
+        "image_quality": "excellent/good/fair/poor",
+        "lighting_conditions": "描述",
+        "clarity": "清晰度评估",
+        "completeness": "完整性评估"
+      },
+      "learning_insights": {
+        "key_features": ["关键特征"],
+        "distinguishing_factors": ["区分因素"],
+        "context_clues": ["上下文线索"],
+        "improvement_suggestions": ["改进建议"]
+      }
+    }
+    
+  # 医疗专用提示词
+  medical_prompt: |
+    这是一个医疗健康相关的图像分析任务。请特别关注：
+    
+    1. 药物识别：药品名称、剂量、有效期、用法用量
+    2. 医疗器械：类型、用途、使用状态
+    3. 健康状态：面部表情、身体姿态、异常症状
+    4. 紧急情况：跌倒、意外伤害、急救需求
+    5. 环境安全：医疗环境的安全隐患
+    
+    对于任何可能的医疗紧急情况，请提供明确的警告和建议。
+    
+  # 学习优化提示词
+  learning_prompt: |
+    这是一个自学习场景，系统需要从这张图像中学习新知识。请提供：
+    
+    1. 详细的对象特征描述
+    2. 与已知对象的区别
+    3. 识别的关键点
+    4. 可能的混淆对象
+    5. 改进识别的建议
+    
+# 识别任务配置
+recognition_tasks:
+  # 默认任务配置
+  default:
+    confidence_threshold: 0.6
+    max_processing_time: 30
+    enable_learning: true
+    save_results: true
+    
+  # 专项任务配置
+  specialized_tasks:
+    medication_analysis:
+      confidence_threshold: 0.8
+      prompt_template: "medical_prompt"
+      enable_ocr: true
+      save_high_res: true
+      
+    fall_detection:
+      confidence_threshold: 0.9
+      real_time_processing: true
+      emergency_alert: true
+      
+    object_inventory:
+      confidence_threshold: 0.7
+      batch_processing: true
+      detailed_attributes: true
+      
+    security_monitoring:
+      confidence_threshold: 0.75
+      continuous_monitoring: true
+      anomaly_detection: true
+      
+# 日志配置
+logging:
+  # 基础配置
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # 文件日志
+  file_logging:
+    enabled: true
+    log_file: "logs/local_llm_system.log"
+    max_file_size: "100MB"
+    backup_count: 10
+    rotation: "daily"
+    
+  # 控制台日志
+  console_logging:
+    enabled: true
+    colored: true
+    
+  # 详细日志类别
+  categories:
+    model_requests: true             # 模型请求日志
+    image_processing: true           # 图像处理日志
+    recognition_results: true        # 识别结果日志
+    learning_activities: true        # 学习活动日志
+    performance_metrics: true        # 性能指标日志
+    error_tracking: true             # 错误跟踪日志
+    cache_operations: true           # 缓存操作日志
+    
+  # 敏感信息过滤
+  sensitive_data_filter:
+    enabled: true
+    filter_api_keys: true
+    filter_personal_info: true
+    filter_medical_details: false    # 医疗信息需要记录用于分析
+    
+# 性能优化配置
+performance:
+  # 并发配置
+  max_concurrent_requests: 4
+  request_queue_size: 100
+  worker_threads: 8
+  
+  # 内存管理
+  max_memory_usage_mb: 4096
+  image_cache_size: 500
+  result_cache_size: 1000
+  garbage_collection_interval: 300
+  
+  # GPU配置
+  gpu_acceleration:
+    enabled: true
+    device_id: 0
+    memory_fraction: 0.8
+    allow_growth: true
+    
+  # 批处理配置
+  batch_processing:
+    enabled: true
+    batch_size: 8
+    batch_timeout: 10
+    
+# 数据存储配置
+storage:
+  # 基础路径
+  base_path: "data/local_llm"
+  
+  # 图像存储
+  images:
+    path: "data/local_llm/images"
+    save_original: true
+    save_processed: true
+    compression: true
+    retention_days: 30
+    
+  # 结果存储
+  results:
+    path: "data/local_llm/results"
+    format: "json"
+    include_metadata: true
+    retention_days: 90
+    
+  # 学习数据存储
+  learning_data:
+    path: "data/local_llm/learning"
+    save_feedback: true
+    save_improvements: true
+    backup_enabled: true
+    backup_interval: 86400
+    
+  # 缓存存储
+  cache:
+    path: "data/local_llm/cache"
+    persistent: true
+    cleanup_interval: 3600
+    
+# 监控和告警配置
+monitoring:
+  # 性能监控
+  performance_monitoring:
+    enabled: true
+    metrics_interval: 10
+    
+    # 监控指标
+    metrics:
+      - "request_count"
+      - "response_time"
+      - "success_rate"
+      - "error_rate"
+      - "memory_usage"
+      - "gpu_usage"
+      - "cache_hit_rate"
+      - "model_load_time"
+      
+  # 健康检查
+  health_check:
+    enabled: true
+    check_interval: 30
+    timeout: 10
+    
+    # 检查项目
+    checks:
+      - "ollama_service"
+      - "model_availability"
+      - "memory_usage"
+      - "disk_space"
+      - "gpu_status"
+      
+  # 告警配置
+  alerts:
+    enabled: true
+    
+    # 告警阈值
+    thresholds:
+      error_rate: 0.1              # 错误率超过10%
+      response_time: 30            # 响应时间超过30秒
+      memory_usage: 0.9            # 内存使用超过90%
+      disk_usage: 0.85             # 磁盘使用超过85%
+      
+    # 告警方式
+    notification:
+      console: true
+      log_file: true
+      webhook: false
+      
+# 安全配置
+security:
+  # 访问控制
+  access_control:
+    enabled: false
+    api_key_required: false
+    allowed_ips: []
+    
+  # 数据保护
+  data_protection:
+    encrypt_storage: false
+    secure_deletion: true
+    anonymize_logs: false          # 医疗应用需要详细日志
+    
+  # 隐私保护
+  privacy:
+    blur_faces: false              # 医疗应用需要面部信息
+    remove_metadata: true
+    data_retention_limit: true
+    
+# 集成配置
+integrations:
+  # YOLOS系统集成
+  yolos_integration:
+    enabled: true
+    api_endpoint: "http://localhost:8080/api/v1"
+    sync_results: true
+    sync_learning: true
+    
+  # 外部API集成
+  external_apis:
+    enabled: false
+    fallback_to_external: true
+    external_providers: ["openai_gpt4v", "claude_vision"]
+    
+  # 数据库集成
+  database:
+    enabled: false
+    type: "sqlite"
+    connection_string: "sqlite:///data/local_llm/database.db"
+    
+# 开发和调试配置
+development:
+  # 调试模式
+  debug_mode: true
+  verbose_logging: true
+  
+  # 测试配置
+  test_mode: false
+  mock_responses: false
+  test_data_path: "test_data/local_llm"
+  
+  # 性能分析
+  profiling:
+    enabled: false
+    profile_requests: false
+    profile_memory: false
+    
+# 部署配置
+deployment:
+  # 环境配置
+  environment: "development"       # development/staging/production
+  
+  # 服务配置
+  service:
+    auto_start: true
+    restart_on_failure: true
+    max_restart_attempts: 5
+    
+  # 资源限制
+  resources:
+    max_cpu_usage: 80              # CPU使用限制(%)
+    max_memory_usage: 4096         # 内存使用限制(MB)
+    max_disk_usage: 10240          # 磁盘使用限制(MB)

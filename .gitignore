@@ -16,7 +16,6 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -33,17 +32,14 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
 .hypothesis/
 .pytest_cache/
-cover/
 
 # Translations
 *.mo
@@ -53,7 +49,6 @@ cover/
 *.log
 local_settings.py
 db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -66,34 +61,16 @@ instance/
 docs/_build/
 
 # PyBuilder
-.pybuilder/
 target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# IPython
-profile_default/
-ipython_config.py
-
 # pyenv
 .python-version
 
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-# pdm
-.pdm.toml
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
+# celery beat schedule file
 celerybeat-schedule
-celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
@@ -123,22 +100,14 @@ yolos_env/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-.idea/
-
-# VS Code
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Operating System
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -147,129 +116,65 @@ cython_debug/
 ehthumbs.db
 Thumbs.db
 
-# Windows
-*.tmp
-*.temp
-*.swp
-*.swo
-*~
-
-# Models and Data
-*.pth
+# Project specific
 *.pt
+*.pth
 *.onnx
 *.trt
 *.engine
+runs/
+wandb/
 *.weights
-*.h5
-*.pb
-*.tflite
-models/pretrained/
-models/checkpoints/
-data/datasets/
-data/raw/
-data/processed/
 
-# Logs and Results
-log/
-logs/
+# API Keys and sensitive data
+config/api_keys.yaml
+config/secrets.yaml
+*.key
+*.pem
+*.p12
+
+# Logs
 *.log
+logs/
+log/
+
+# Test results
 test_results/
-gui_test_results/
-results/
-output/
+reports/
+*.html
+
+# Cache
+.cache/
+.codebuddy/
 
 # Temporary files
-temp/
 tmp/
-cache/
-.cache/
+temp/
+*.tmp
+*.temp
 
-# IDE and Editor files
-*.sublime-project
-*.sublime-workspace
-.project
-.pydevproject
+# Model files (large)
+models/*.pt
+models/*.pth
+models/*.onnx
 
-# Archive and backup files
-archive/
-backup/
-*.bak
-*.backup
+# Data files
+data/
+dataset/
+datasets/
+*.csv
+*.json
+*.pkl
+*.pickle
 
-# Large media files
-*.mp4
-*.avi
-*.mov
-*.mkv
-*.wmv
-*.flv
-*.webm
-*.m4v
-
-# Image files (keep small ones for documentation)
+# Images (except examples)
 *.jpg
 *.jpeg
 *.png
 *.gif
 *.bmp
 *.tiff
-*.svg
-!docs/images/*.png
-!docs/images/*.jpg
-!docs/images/*.svg
-
-# Audio files
-*.mp3
-*.wav
-*.flac
-*.aac
-*.ogg
-
-# Compressed files
-*.zip
-*.rar
-*.7z
-*.tar.gz
-*.tar.bz2
-
-# Configuration files with sensitive data
-config/secrets.yaml
-config/private.yaml
-*.key
-*.pem
-*.crt
-*.p12
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Jupyter notebook checkpoints
-.ipynb_checkpoints/
-
-# pytest
-.pytest_cache/
-
-# Coverage reports
-htmlcov/
-.coverage
-
-# Documentation build
-docs/_build/
-docs/build/
-
-# Local development
-local/
-dev/
-development/
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+!examples/**/*.jpg
+!examples/**/*.png
+!docs/**/*.jpg
+!docs/**/*.png

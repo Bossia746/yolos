@@ -188,8 +188,9 @@ class MultiModalHumanNet(nn.Module):
 class EnhancedHumanTrainer:
     """增强人体识别训练器"""
     
-    def __init__(self, config: TrainingConfig):
-        self.config = config
+    def __init__(self, model_type: str = 'yolov11', device: str = 'auto', config: Optional[TrainingConfig] = None):
+        self.model_type = model_type
+        self.config = config or TrainingConfig()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = None
         self.train_loader = None
@@ -583,6 +584,50 @@ class EnhancedHumanTrainer:
         
         logger.info("训练完成!")
         return output_path / 'best_model.pth'
+    
+    def get_training_features(self) -> List[str]:
+        """获取训练功能列表"""
+        return [
+            'multi_modal_training',
+            'data_augmentation', 
+            'transfer_learning',
+            'early_stopping',
+            'learning_rate_scheduling',
+            'model_checkpointing',
+            'validation_monitoring',
+            'multi_gpu_support',
+            'mixed_precision',
+            'custom_loss_functions',
+            'pose_keypoint_integration',
+            'gesture_recognition',
+            'action_classification',
+            'real_time_inference'
+        ]
+    
+    def validate_training_config(self, config: Dict[str, Any]) -> bool:
+        """验证训练配置"""
+        required_keys = ['epochs', 'batch_size', 'learning_rate']
+        
+        # 检查必需参数
+        for key in required_keys:
+            if key not in config:
+                logger.error(f"缺少必需参数: {key}")
+                return False
+        
+        # 验证参数范围
+        if config['epochs'] <= 0 or config['epochs'] > 1000:
+            logger.error("epochs必须在1-1000之间")
+            return False
+            
+        if config['batch_size'] <= 0 or config['batch_size'] > 256:
+            logger.error("batch_size必须在1-256之间")
+            return False
+            
+        if config['learning_rate'] <= 0 or config['learning_rate'] > 1:
+            logger.error("learning_rate必须在0-1之间")
+            return False
+        
+        return True
 
 def create_sample_dataset_config() -> List[Dict[str, Any]]:
     """创建示例数据集配置"""

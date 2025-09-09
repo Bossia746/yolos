@@ -9,6 +9,7 @@ from .realtime_detector import RealtimeDetector
 from .image_detector import ImageDetector
 from .video_detector import VideoDetector
 from .camera_detector import CameraDetector
+from .enhanced_realtime_detector import EnhancedRealtimeDetector
 
 class DetectorFactory:
     """检测器工厂类"""
@@ -19,6 +20,8 @@ class DetectorFactory:
         'video': VideoDetector,
         'camera': CameraDetector,
         'yolo': RealtimeDetector,  # 默认使用实时检测器
+        'yolov11': EnhancedRealtimeDetector,  # YOLOv11增强检测器
+        'enhanced': EnhancedRealtimeDetector,  # 增强版检测器
     }
     
     @classmethod
@@ -44,16 +47,27 @@ class DetectorFactory:
                 return detector_class(
                     model_type=config.get('model_type', 'yolov8'),
                     model_path=config.get('model_path'),
-                    device=config.get('device', 'auto'),
-                    confidence_threshold=config.get('confidence_threshold', 0.5),
-                    nms_threshold=config.get('nms_threshold', 0.4)
+                    device=config.get('device', 'auto')
                 )
+            elif detector_type in ['yolov11', 'enhanced']:
+                # 增强检测器使用配置对象
+                from ..models.optimized_yolov11_system import OptimizationConfig
+                opt_config = OptimizationConfig(
+                    model_size=config.get('model_size', 's'),
+                    device=config.get('device', 'auto'),
+                    confidence_threshold=config.get('confidence_threshold', 0.25),
+                    iou_threshold=config.get('iou_threshold', 0.45),
+                    target_fps=config.get('target_fps', 30.0),
+                    platform=config.get('platform', 'pc'),
+                    adaptive_inference=config.get('adaptive_inference', True),
+                    edge_optimization=config.get('edge_optimization', False)
+                )
+                return detector_class(opt_config)
             elif detector_type == 'camera':
                 return detector_class(
                     model_type=config.get('model_type', 'yolov8'),
                     model_path=config.get('model_path'),
-                    device=config.get('device', 'auto'),
-                    camera_type=config.get('camera_type', 'usb')
+                    device=config.get('device', 'auto')
                 )
             elif detector_type in ['image', 'video']:
                 return detector_class(

@@ -21,9 +21,10 @@ except ImportError:
 
 from ..core.types import DetectionResult, create_detection_result, ObjectType
 from ..utils.logging_manager import LoggingManager
+from .base_detector_interface import BaseDetectorInterface
 
 
-class YOLOv11Detector:
+class YOLOv11Detector(BaseDetectorInterface):
     """
     YOLOv11优化检测器
     

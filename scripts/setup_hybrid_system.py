@@ -375,7 +375,7 @@ system.recognizers['custom_scene'] = CustomRecognizer()
 ## 技术支持
 
 如有问题，请查看：
-1. 系统日志: `./log/`
+1. 系统日志: `./logs/`
 2. 部署报告: `./deployment_report.json`
 3. 配置文件: `./config/`
 

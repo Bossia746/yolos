@@ -1,0 +1,263 @@
+# YOLOS YOLOv11优化配置文件
+# 集成最新YOLOv11算法和性能优化
+
+# 摄像头配置
+camera:
+  device_id: 0
+  width: 640
+  height: 480
+  fps: 30
+  buffer_size: 1
+  auto_exposure: true
+  brightness: 0.5
+  contrast: 0.5
+  saturation: 0.5
+
+# 检测配置 - YOLOv11优化版
+detection:
+  type: "yolov11"
+  model_size: "s"  # n, s, m, l, x
+  confidence_threshold: 0.25
+  nms_threshold: 0.45
+  iou_threshold: 0.45
+  max_detections: 100
+  input_size: 640
+  device: "auto"
+  
+  # YOLOv11优化配置
+  half_precision: true
+  tensorrt_optimize: true
+  edge_optimization: false
+  adaptive_inference: true
+  
+  # 性能配置
+  target_fps: 30.0
+  detection_interval: 1
+  batch_size: 1
+  
+  # 平台配置
+  platform: "pc"  # pc, raspberry_pi, jetson_nano, esp32
+
+# 识别配置
+recognition:
+  types: ['face', 'gesture', 'object', 'pose']
+  
+  # 人脸识别配置
+  face_recognition:
+    enabled: true
+    model_type: 'facenet'
+    confidence_threshold: 0.8
+    face_database_path: 'data/faces'
+    max_faces: 10
+  
+  # 手势识别配置
+  gesture_recognition:
+    enabled: true
+    model_type: 'mediapipe'
+    confidence_threshold: 0.7
+    max_hands: 2
+  
+  # 物体识别配置
+  object_recognition:
+    enabled: true
+    model_type: 'yolov11'
+    confidence_threshold: 0.25
+    classes: ['person', 'cat', 'dog', 'bird', 'car', 'bicycle']
+  
+  # 姿态识别配置
+  pose_recognition:
+    enabled: true
+    model_type: 'yolov11_pose'
+    confidence_threshold: 0.3
+    max_persons: 5
+
+# 预处理配置
+preprocessing:
+  enabled: true
+  resize_enabled: true
+  target_size: [640, 640]
+  normalize_enabled: true
+  enhance_enabled: false
+  
+  # 图像增强配置
+  enhancement:
+    clahe_enabled: false
+    gamma_correction: 1.0
+    denoising_enabled: false
+    sharpening_enabled: false
+
+# 后处理配置
+postprocessing:
+  enabled: true
+  visualization_enabled: true
+  save_results: false
+  output_path: "results"
+  
+  # 可视化配置
+  visualization:
+    draw_boxes: true
+    draw_labels: true
+    draw_confidence: true
+    box_color: [0, 255, 0]
+    text_color: [255, 255, 255]
+    font_scale: 0.5
+    thickness: 2
+
+# 训练配置
+training:
+  model_architecture: "yolov11s"
+  input_size: 640
+  epochs: 100
+  batch_size: 16
+  learning_rate: 0.001
+  device: "auto"
+  
+  # 数据配置
+  data:
+    train_path: 'data/datasets/train'
+    val_path: 'data/datasets/val'
+    test_path: 'data/datasets/test'
+  
+  # 优化器配置
+  optimizer:
+    type: 'adamw'
+    weight_decay: 0.0005
+    momentum: 0.937
+
+# API配置
+api:
+  enabled: true
+  host: "localhost"
+  port: 8080
+  debug: false
+  
+  # 认证配置
+  authentication:
+    enabled: false
+    api_key: null
+    jwt_secret: null
+  
+  # CORS配置
+  cors:
+    enabled: true
+    origins: ["*"]
+    methods: ["GET", "POST"]
+    headers: ["*"]
+
+# 日志配置
+logging:
+  level: "INFO"
+  console_output: true
+  file_output: true
+  max_file_size: "10MB"
+  backup_count: 5
+  
+  # 模块日志级别
+  modules:
+    engine: 'INFO'
+    detector: 'INFO'
+    recognizer: 'INFO'
+    training: 'INFO'
+    api: 'INFO'
+    yolov11: 'INFO'
+
+# 性能优化配置
+performance:
+  # 多线程配置
+  num_threads: 4
+  
+  # 内存优化
+  memory_optimization: true
+  cache_size: 100
+  
+  # GPU优化
+  gpu_optimization:
+    enabled: true
+    memory_fraction: 0.8
+    allow_growth: true
+  
+  # 批处理优化
+  batch_processing:
+    enabled: true
+    max_batch_size: 8
+    timeout: 0.1
+
+# AIoT平台配置
+aiot:
+  # ESP32配置
+  esp32:
+    model_size: "n"
+    input_size: 320
+    confidence_threshold: 0.4
+    max_detections: 10
+    quantization: "int8"
+  
+  # 树莓派配置
+  raspberry_pi:
+    model_size: "s"
+    input_size: 416
+    confidence_threshold: 0.3
+    max_detections: 50
+    quantization: "fp16"
+  
+  # Jetson Nano配置
+  jetson_nano:
+    model_size: "m"
+    input_size: 640
+    confidence_threshold: 0.25
+    max_detections: 100
+    quantization: "fp16"
+    tensorrt_enabled: true
+
+# 自学习系统配置
+self_learning:
+  enabled: true
+  
+  # 大模型API配置
+  llm_apis:
+    gpt4v:
+      enabled: true
+      api_key: "${GPT4V_API_KEY}"
+      model: "gpt-4-vision-preview"
+    
+    claude3:
+      enabled: true
+      api_key: "${CLAUDE3_API_KEY}"
+      model: "claude-3-opus-20240229"
+    
+    qwen_vl:
+      enabled: true
+      api_key: "${QWEN_API_KEY}"
+      model: "qwen-vl-plus"
+  
+  # 学习触发条件
+  learning_triggers:
+    low_confidence_threshold: 0.3
+    unknown_object_threshold: 0.5
+    consensus_threshold: 0.7
+  
+  # 知识库配置
+  knowledge_base:
+    path: "data/knowledge"
+    max_size: "1GB"
+    backup_enabled: true
+
+# 医疗场景优化配置
+medical:
+  # 跌倒检测
+  fall_detection:
+    enabled: true
+    sensitivity: 0.8
+    alert_threshold: 0.9
+    
+  # 药物识别
+  medication_recognition:
+    enabled: true
+    database_path: "data/medications"
+    confidence_threshold: 0.85
+  
+  # 生理分析
+  physiological_analysis:
+    enabled: true
+    face_analysis: true
+    vital_signs: true
