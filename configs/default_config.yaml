@@ -1,0 +1,160 @@
+# YOLOS 默认配置文件
+
+# 模型配置
+model:
+  type: "yolov8"  # yolov5, yolov8, yolo-world
+  size: "n"       # n, s, m, l, x
+  device: "auto"  # auto, cpu, cuda
+  confidence_threshold: 0.25
+  iou_threshold: 0.7
+
+# 检测配置
+detection:
+  input_size: [640, 640]
+  max_detections: 100
+  save_results: true
+  draw_labels: true
+  draw_confidence: true
+
+# 摄像头配置
+camera:
+  type: "usb"        # usb, picamera
+  device_id: 0
+  resolution: [640, 480]
+  framerate: 30
+  detection_interval: 1  # 每N帧检测一次
+
+# 多模态识别配置
+multimodal:
+  # 手势识别配置
+  gesture:
+    enabled: true
+    model_complexity: 1  # 0, 1
+    min_detection_confidence: 0.5
+    min_tracking_confidence: 0.5
+    max_num_hands: 2
+    static_image_mode: false
+    
+  # 面部识别配置
+  face:
+    enabled: true
+    model_selection: 0  # 0 for short-range, 1 for full-range
+    min_detection_confidence: 0.5
+    min_tracking_confidence: 0.5
+    refine_landmarks: false
+    face_database_path: "face_database.pkl"
+    recognition_threshold: 0.6
+    use_insightface: true   # 启用InsightFace，使用本地buffalo_l模型
+    
+  # 身体姿势识别配置
+  pose:
+    enabled: true
+    model_complexity: 1  # 0, 1, 2
+    min_detection_confidence: 0.5
+    min_tracking_confidence: 0.5
+    static_image_mode: false
+    smooth_landmarks: true
+    enable_segmentation: false
+    
+  # 通用配置
+  detection_interval: 1  # 每N帧检测一次
+  enable_callbacks: true
+  save_annotations: false
+  annotation_output_dir: "multimodal_outputs"
+
+# 训练配置
+training:
+  epochs: 100
+  batch_size: 16
+  learning_rate: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+  warmup_epochs: 3
+  patience: 50
+  save_period: 10
+  workers: 8
+
+# 数据集配置
+dataset:
+  path: "./datasets"
+  train: "train/images"
+  val: "val/images"
+  test: "test/images"
+  nc: 80  # 类别数量
+  names: []  # 类别名称列表
+
+# MQTT配置
+mqtt:
+  enabled: false
+  broker_host: "localhost"
+  broker_port: 1883
+  client_id: null
+  username: null
+  password: null
+  topics:
+    detection_results: "yolos/detection/results"
+    system_status: "yolos/system/status"
+    commands: "yolos/commands"
+
+# HTTP服务器配置
+http_server:
+  enabled: false
+  host: "0.0.0.0"
+  port: 8000
+  cors_enabled: true
+
+# WebSocket配置
+websocket:
+  enabled: false
+  host: "0.0.0.0"
+  port: 8001
+
+# ROS配置
+ros:
+  enabled: false
+  version: 2  # 1 or 2
+  node_name: "yolos_detector"
+  topics:
+    image_input: "/camera/image_raw"
+    detection_output: "/yolos/detections"
+    image_output: "/yolos/image_annotated"
+
+# 日志配置
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "logs/yolos.log"
+  max_size: "10MB"
+  backup_count: 5
+
+# 性能配置
+performance:
+  enable_gpu: true
+  enable_tensorrt: false
+  enable_openvino: false
+  batch_processing: false
+  async_processing: true
+
+# 存储配置
+storage:
+  save_images: false
+  save_videos: false
+  output_dir: "outputs"
+  image_format: "jpg"
+  video_format: "mp4"
+
+# 树莓派特定配置
+raspberry_pi:
+  gpio_pins:
+    led_status: 18
+    button_trigger: 24
+  camera_module: "v2"  # v1, v2, hq
+  enable_hardware_pwm: false
+
+# ESP32配置
+esp32:
+  wifi_ssid: ""
+  wifi_password: ""
+  mqtt_server: ""
+  camera_model: "AI_THINKER"  # AI_THINKER, M5STACK_PSRAM, etc.
+  image_quality: 10  # 0-63, lower is higher quality
+  frame_size: "QVGA"  # QVGA, VGA, SVGA, etc.

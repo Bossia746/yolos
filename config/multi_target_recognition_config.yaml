@@ -1,0 +1,439 @@
+# 智能多目标识别系统配置文件
+# YOLOS Multi-Target Recognition Configuration
+
+# 基础配置
+basic_config:
+  max_objects_per_frame: 15        # 每帧最大处理目标数
+  processing_timeout: 8.0          # 处理超时时间(秒)
+  quality_threshold: 0.5           # 质量阈值
+  enable_caching: true             # 启用结果缓存
+  enable_adaptation: true          # 启用自适应调整
+  adaptation_interval: 5.0         # 自适应调整间隔(秒)
+  cache_ttl: 30.0                 # 缓存生存时间(秒)
+  resource_monitoring: true        # 启用资源监控
+  parallel_processing: true        # 启用并行处理
+  max_workers: 6                  # 最大工作线程数
+
+# 优先级权重配置
+priority_weights:
+  human: 1.0                      # 人类基础权重
+  emergency: 2.0                  # 紧急情况权重倍数
+  medical: 1.5                    # 医疗相关权重倍数
+  security: 1.3                   # 安防相关权重倍数
+  pet: 0.8                        # 宠物权重
+  static: 0.5                     # 静物权重
+
+# 场景特定配置
+scene_configs:
+  medical_monitoring:
+    priority_categories:
+      - human
+      - human_face
+      - human_pose
+      - medical_item
+    processing_strategy: "quality_first"
+    max_processing_time: 10.0
+    quality_threshold: 0.8
+    emergency_keywords:
+      - "fall"
+      - "emergency" 
+      - "pain"
+      - "help"
+      - "medical"
+    alert_thresholds:
+      fall_detection: 0.7
+      medical_emergency: 0.8
+      vital_signs_abnormal: 0.6
+
+  security_surveillance:
+    priority_categories:
+      - human
+      - human_face
+      - dangerous_item
+      - vehicle
+    processing_strategy: "speed_first"
+    max_processing_time: 3.0
+    quality_threshold: 0.6
+    security_keywords:
+      - "intrusion"
+      - "weapon"
+      - "suspicious"
+      - "alert"
+      - "unauthorized"
+    alert_thresholds:
+      intrusion_detection: 0.8
+      weapon_detection: 0.9
+      suspicious_behavior: 0.7
+
+  home_automation:
+    priority_categories:
+      - human
+      - human_gesture
+      - pet
+      - static_object
+    processing_strategy: "balanced"
+    max_processing_time: 5.0
+    quality_threshold: 0.6
+    automation_keywords:
+      - "gesture"
+      - "command"
+      - "control"
+      - "automation"
+    gesture_commands:
+      wave: "greeting"
+      point: "selection"
+      thumbs_up: "confirmation"
+      stop_hand: "halt"
+
+  traffic_monitoring:
+    priority_categories:
+      - vehicle
+      - human
+      - dangerous_item
+    processing_strategy: "resource_aware"
+    max_processing_time: 4.0
+    quality_threshold: 0.7
+    traffic_keywords:
+      - "accident"
+      - "violation"
+      - "congestion"
+      - "emergency"
+    violation_types:
+      speeding: 0.8
+      red_light: 0.9
+      wrong_way: 0.9
+      parking: 0.6
+
+# 自适应阈值配置
+adaptation_thresholds:
+  cpu_high: 80.0                  # CPU高使用率阈值(%)
+  cpu_critical: 95.0              # CPU临界使用率阈值(%)
+  memory_high: 85.0               # 内存高使用率阈值(%)
+  memory_critical: 95.0           # 内存临界使用率阈值(%)
+  gpu_high: 90.0                  # GPU高使用率阈值(%)
+  queue_length_high: 10           # 队列长度高阈值
+  queue_length_critical: 20       # 队列长度临界阈值
+  processing_time_high: 3.0       # 处理时间高阈值(秒)
+  processing_time_critical: 5.0   # 处理时间临界阈值(秒)
+  success_rate_low: 0.7           # 成功率低阈值
+  success_rate_critical: 0.5      # 成功率临界阈值
+
+# 处理策略配置
+strategies:
+  quality_first:
+    description: "质量优先策略，适用于医疗监控等对准确性要求高的场景"
+    max_processing_time: 10.0
+    quality_threshold: 0.8
+    parallel_limit: 3
+    enable_deep_analysis: true
+    enable_multi_model_fusion: true
+    confidence_boost: 0.1
+
+  speed_first:
+    description: "速度优先策略，适用于安防监控等对实时性要求高的场景"
+    max_processing_time: 2.0
+    quality_threshold: 0.4
+    parallel_limit: 8
+    enable_fast_detection: true
+    skip_complex_analysis: true
+    confidence_penalty: 0.05
+
+  balanced:
+    description: "平衡策略，在质量和速度之间取得平衡"
+    max_processing_time: 5.0
+    quality_threshold: 0.6
+    parallel_limit: 6
+    enable_adaptive_quality: true
+    dynamic_threshold: true
+
+  resource_aware:
+    description: "资源感知策略，根据系统资源状况动态调整"
+    max_processing_time: 6.0
+    quality_threshold: 0.5
+    parallel_limit: 4
+    monitor_resources: true
+    adaptive_parallel: true
+    resource_based_quality: true
+
+# 目标类别特定配置
+object_categories:
+  human:
+    base_priority: 80
+    processing_modules:
+      - "face_detection"
+      - "pose_estimation" 
+      - "behavior_analysis"
+      - "fall_detection"
+    medical_analysis:
+      enabled: true
+      vital_signs: true
+      emotion_detection: true
+      health_indicators: true
+    max_processing_time: 2.0
+
+  human_face:
+    base_priority: 85
+    processing_modules:
+      - "facial_recognition"
+      - "emotion_analysis"
+      - "age_estimation"
+      - "health_assessment"
+    medical_analysis:
+      enabled: true
+      skin_analysis: true
+      eye_tracking: true
+      facial_symmetry: true
+    max_processing_time: 1.5
+
+  human_gesture:
+    base_priority: 60
+    processing_modules:
+      - "gesture_recognition"
+      - "hand_tracking"
+      - "command_interpretation"
+    interaction_analysis:
+      enabled: true
+      command_mapping: true
+      emergency_gestures: true
+    max_processing_time: 1.0
+
+  human_pose:
+    base_priority: 70
+    processing_modules:
+      - "pose_estimation"
+      - "activity_recognition"
+      - "fall_detection"
+      - "gait_analysis"
+    medical_analysis:
+      enabled: true
+      mobility_assessment: true
+      balance_analysis: true
+    max_processing_time: 2.0
+
+  pet:
+    base_priority: 40
+    processing_modules:
+      - "species_identification"
+      - "behavior_analysis"
+      - "health_monitoring"
+    pet_analysis:
+      enabled: true
+      breed_recognition: true
+      activity_tracking: true
+      health_indicators: true
+    max_processing_time: 3.0
+
+  wild_animal:
+    base_priority: 50
+    processing_modules:
+      - "species_identification"
+      - "threat_assessment"
+      - "behavior_prediction"
+    safety_analysis:
+      enabled: true
+      danger_level: true
+      approach_behavior: true
+    max_processing_time: 3.0
+
+  medical_item:
+    base_priority: 70
+    processing_modules:
+      - "item_identification"
+      - "usage_detection"
+      - "dosage_analysis"
+    medical_analysis:
+      enabled: true
+      medication_verification: true
+      usage_compliance: true
+    max_processing_time: 2.0
+
+  dangerous_item:
+    base_priority: 100
+    processing_modules:
+      - "weapon_detection"
+      - "threat_assessment"
+      - "immediate_alert"
+    security_analysis:
+      enabled: true
+      threat_level: true
+      immediate_response: true
+    max_processing_time: 1.0
+
+  vehicle:
+    base_priority: 45
+    processing_modules:
+      - "vehicle_classification"
+      - "license_recognition"
+      - "behavior_analysis"
+    traffic_analysis:
+      enabled: true
+      speed_estimation: true
+      violation_detection: true
+    max_processing_time: 2.5
+
+  plant:
+    base_priority: 25
+    processing_modules:
+      - "species_identification"
+      - "health_assessment"
+      - "growth_monitoring"
+    botanical_analysis:
+      enabled: true
+      disease_detection: true
+      growth_stage: true
+    max_processing_time: 4.0
+
+  static_object:
+    base_priority: 20
+    processing_modules:
+      - "object_classification"
+      - "change_detection"
+      - "inventory_tracking"
+    inventory_analysis:
+      enabled: true
+      position_tracking: true
+      condition_assessment: true
+    max_processing_time: 5.0
+
+# 紧急情况处理配置
+emergency_handling:
+  enabled: true
+  immediate_alert: true
+  alert_channels:
+    - "system_log"
+    - "mqtt_publish"
+    - "webhook_call"
+    - "sms_notification"
+  
+  emergency_types:
+    fall_detection:
+      priority: "critical"
+      response_time: 1.0
+      alert_message: "检测到人员跌倒"
+      required_confidence: 0.8
+      
+    weapon_detection:
+      priority: "critical"
+      response_time: 0.5
+      alert_message: "检测到危险武器"
+      required_confidence: 0.9
+      
+    medical_emergency:
+      priority: "high"
+      response_time: 2.0
+      alert_message: "检测到医疗紧急情况"
+      required_confidence: 0.7
+      
+    intrusion_detection:
+      priority: "high"
+      response_time: 1.5
+      alert_message: "检测到非法入侵"
+      required_confidence: 0.8
+
+# 性能优化配置
+performance_optimization:
+  enable_gpu_acceleration: true
+  enable_model_quantization: false
+  enable_tensorrt: false
+  batch_processing: true
+  max_batch_size: 4
+  
+  memory_management:
+    enable_memory_pool: true
+    max_memory_usage: "4GB"
+    garbage_collection_interval: 60
+    
+  cpu_optimization:
+    enable_multi_threading: true
+    thread_pool_size: 8
+    enable_simd: true
+    
+  cache_optimization:
+    enable_result_cache: true
+    cache_size_limit: 1000
+    cache_cleanup_interval: 300
+
+# 日志配置
+logging:
+  level: "INFO"
+  enable_file_logging: true
+  log_file: "logs/multi_target_recognition.log"
+  max_log_size: "100MB"
+  backup_count: 5
+  
+  log_categories:
+    recognition_results: true
+    performance_metrics: true
+    error_tracking: true
+    adaptation_events: true
+    emergency_alerts: true
+
+# 监控和统计配置
+monitoring:
+  enable_metrics_collection: true
+  metrics_interval: 10.0
+  enable_performance_profiling: false
+  
+  metrics_to_collect:
+    - "processing_time"
+    - "success_rate"
+    - "resource_usage"
+    - "queue_length"
+    - "cache_hit_rate"
+    - "adaptation_frequency"
+    
+  alerts:
+    performance_degradation: true
+    resource_exhaustion: true
+    high_error_rate: true
+    queue_overflow: true
+
+# 扩展模块配置
+extensions:
+  enable_plugin_system: true
+  plugin_directory: "plugins/"
+  
+  available_plugins:
+    - "advanced_medical_analysis"
+    - "enhanced_security_detection"
+    - "smart_home_integration"
+    - "traffic_violation_detection"
+    - "environmental_monitoring"
+  
+  plugin_configs:
+    advanced_medical_analysis:
+      enabled: false
+      config_file: "plugins/medical_analysis_config.yaml"
+    
+    enhanced_security_detection:
+      enabled: false
+      config_file: "plugins/security_detection_config.yaml"
+
+# 集成配置
+integrations:
+  mqtt:
+    enabled: true
+    broker_host: "localhost"
+    broker_port: 1883
+    topics:
+      recognition_results: "yolos/recognition/results"
+      emergency_alerts: "yolos/alerts/emergency"
+      system_status: "yolos/system/status"
+  
+  webhook:
+    enabled: false
+    endpoints:
+      emergency_alert: "http://localhost:8080/api/emergency"
+      recognition_result: "http://localhost:8080/api/recognition"
+  
+  database:
+    enabled: false
+    type: "sqlite"
+    connection_string: "sqlite:///data/recognition_results.db"
+    
+  external_apis:
+    enabled: false
+    llm_service:
+      provider: "openai"
+      api_key: "${OPENAI_API_KEY}"
+      model: "gpt-4-vision-preview"

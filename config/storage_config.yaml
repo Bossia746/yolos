@@ -1,0 +1,239 @@
+# YOLOS 数据存储配置
+# 支持不同环境和平台的存储配置
+
+# 默认存储配置
+default:
+  base_path: "./data"
+  max_size_mb: 1024  # 1GB
+  compression_enabled: true
+  backup_enabled: true
+  cleanup_enabled: true
+  retention_days: 30
+  cache_size_mb: 256  # 256MB
+
+# 开发环境配置
+development:
+  base_path: "./data/dev"
+  max_size_mb: 512   # 512MB
+  compression_enabled: false  # 开发时不压缩，便于调试
+  backup_enabled: true
+  cleanup_enabled: false  # 开发时不自动清理
+  retention_days: 7
+  cache_size_mb: 128
+
+# 生产环境配置
+production:
+  base_path: "/var/lib/yolos/data"
+  max_size_mb: 4096  # 4GB
+  compression_enabled: true
+  backup_enabled: true
+  cleanup_enabled: true
+  retention_days: 90
+  cache_size_mb: 512
+
+# 测试环境配置
+testing:
+  base_path: "./data/test"
+  max_size_mb: 256   # 256MB
+  compression_enabled: false
+  backup_enabled: false  # 测试时不需要备份
+  cleanup_enabled: true
+  retention_days: 1   # 测试数据保留1天
+  cache_size_mb: 64
+
+# 嵌入式设备配置（ESP32、树莓派等）
+embedded:
+  base_path: "/data"
+  max_size_mb: 128   # 128MB，适应存储限制
+  compression_enabled: true  # 必须压缩以节省空间
+  backup_enabled: false  # 嵌入式设备通常不需要本地备份
+  cleanup_enabled: true
+  retention_days: 7
+  cache_size_mb: 32   # 32MB，适应内存限制
+
+# 边缘计算配置
+edge:
+  base_path: "./data/edge"
+  max_size_mb: 2048  # 2GB
+  compression_enabled: true
+  backup_enabled: true
+  cleanup_enabled: true
+  retention_days: 30
+  cache_size_mb: 256
+
+# 云端配置
+cloud:
+  base_path: "/cloud/yolos/data"
+  max_size_mb: 10240  # 10GB
+  compression_enabled: true
+  backup_enabled: true
+  cleanup_enabled: true
+  retention_days: 180  # 云端保留更长时间
+  cache_size_mb: 1024  # 1GB缓存
+
+# 平台特定配置
+platforms:
+  # Windows配置
+  windows:
+    base_path: "C:\\ProgramData\\YOLOS\\data"
+    max_size_mb: 2048
+    compression_enabled: true
+    backup_enabled: true
+    cleanup_enabled: true
+    retention_days: 60
+    cache_size_mb: 512
+
+  # Linux配置
+  linux:
+    base_path: "/var/lib/yolos/data"
+    max_size_mb: 4096
+    compression_enabled: true
+    backup_enabled: true
+    cleanup_enabled: true
+    retention_days: 90
+    cache_size_mb: 512
+
+  # macOS配置
+  macos:
+    base_path: "~/Library/Application Support/YOLOS/data"
+    max_size_mb: 2048
+    compression_enabled: true
+    backup_enabled: true
+    cleanup_enabled: true
+    retention_days: 60
+    cache_size_mb: 512
+
+  # ESP32配置
+  esp32:
+    base_path: "/spiffs/data"
+    max_size_mb: 32    # ESP32存储限制
+    compression_enabled: true
+    backup_enabled: false
+    cleanup_enabled: true
+    retention_days: 3
+    cache_size_mb: 8   # 8MB缓存
+
+  # 树莓派配置
+  raspberry_pi:
+    base_path: "/home/pi/yolos/data"
+    max_size_mb: 512
+    compression_enabled: true
+    backup_enabled: true
+    cleanup_enabled: true
+    retention_days: 30
+    cache_size_mb: 128
+
+# 数据类型特定配置
+data_types:
+  # 模拟数据配置
+  mock:
+    max_size_mb: 256
+    compression_enabled: false  # 模拟数据通常较小，不需要压缩
+    retention_days: 7
+    cache_enabled: true
+
+  # 训练数据配置
+  training:
+    max_size_mb: 2048  # 训练数据可能很大
+    compression_enabled: true
+    retention_days: 180  # 训练数据保留更长时间
+    cache_enabled: false  # 训练数据不缓存，避免内存占用
+
+  # 配置数据配置
+  config:
+    max_size_mb: 64
+    compression_enabled: false  # 配置文件通常很小
+    retention_days: 365  # 配置数据保留一年
+    cache_enabled: true
+
+  # 缓存数据配置
+  cache:
+    max_size_mb: 512
+    compression_enabled: false  # 缓存数据不再压缩
+    retention_days: 1   # 缓存数据只保留一天
+    cache_enabled: false  # 缓存数据本身不再缓存
+
+# 性能优化配置
+performance:
+  # 并发配置
+  max_workers: 4
+  io_timeout: 30  # 秒
+  
+  # 批处理配置
+  batch_size: 100
+  batch_timeout: 5  # 秒
+  
+  # 压缩配置
+  compression_level: 6  # gzip压缩级别 (1-9)
+  compression_threshold: 1024  # 超过1KB才压缩
+  
+  # 缓存配置
+  cache_ttl: 3600  # 缓存生存时间（秒）
+  cache_max_items: 1000
+  
+# 安全配置
+security:
+  # 数据加密
+  encryption_enabled: false
+  encryption_algorithm: "AES-256"
+  
+  # 访问控制
+  access_control_enabled: false
+  
+  # 数据完整性
+  checksum_enabled: true
+  checksum_algorithm: "md5"
+  
+# 监控配置
+monitoring:
+  # 日志配置
+  log_level: "INFO"
+  log_file: "./logs/storage.log"
+  log_rotation: true
+  log_max_size_mb: 100
+  
+  # 指标收集
+  metrics_enabled: true
+  metrics_interval: 60  # 秒
+  
+  # 健康检查
+  health_check_enabled: true
+  health_check_interval: 300  # 秒
+
+# 备份配置
+backup:
+  # 自动备份
+  auto_backup_enabled: true
+  backup_interval_hours: 24
+  backup_retention_days: 30
+  
+  # 备份存储
+  backup_path: "./backups"
+  backup_compression: true
+  
+  # 远程备份
+  remote_backup_enabled: false
+  remote_backup_url: ""
+  remote_backup_credentials: ""
+
+# 同步配置
+sync:
+  # 数据同步
+  sync_enabled: false
+  sync_interval_minutes: 30
+  
+  # 同步目标
+  sync_targets: []
+  
+  # 冲突解决
+  conflict_resolution: "latest_wins"  # latest_wins, manual, merge
+
+# 环境变量映射
+environment_variables:
+  YOLOS_DATA_PATH: "base_path"
+  YOLOS_MAX_SIZE_MB: "max_size_mb"
+  YOLOS_CACHE_SIZE_MB: "cache_size_mb"
+  YOLOS_COMPRESSION: "compression_enabled"
+  YOLOS_BACKUP: "backup_enabled"
+  YOLOS_CLEANUP: "cleanup_enabled"
+  YOLOS_RETENTION_DAYS: "retention_days"

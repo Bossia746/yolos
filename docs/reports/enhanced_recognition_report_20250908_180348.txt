@@ -1,0 +1,35 @@
+
+Enhanced Object Recognition Session Report
+=========================================
+Duration: 18.9 seconds
+Average FPS: 0.0
+Total Frames: 0
+
+Enhanced Detection Results:
+• QR Codes Detected: 0
+• Barcodes Detected: 0
+• License Plates Detected: 0
+• Traffic Signs Detected: 0
+• Traffic Lights Detected: 0
+• Facility Signs Detected: 0
+• Basic Objects Detected: 0
+• Total Objects Detected: 0
+
+Performance Metrics:
+• Detection Rate: 0.000 objects/frame
+• QR Code Detection Rate: 0.00%
+• Barcode Detection Rate: 0.00%
+• License Plate Detection Rate: 0.00%
+• Traffic Sign Detection Rate: 0.00%
+• Traffic Light Detection Rate: 0.00%
+• Facility Sign Detection Rate: 0.00%
+• Basic Object Detection Rate: 0.00%
+
+System Capabilities:
+• Multi-format code recognition (QR, barcodes)
+• Vehicle identification (license plates)
+• Traffic infrastructure detection (signs, lights)
+• Public facility recognition (restrooms, exits, etc.)
+• Basic object analysis (color, shape, text)
+• Real-time processing with optimized performance
+            

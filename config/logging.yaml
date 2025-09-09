@@ -1,0 +1,86 @@
+# YOLOS日志系统配置文件
+
+# 全局日志配置
+global:
+  level: INFO                    # 全局日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: '[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(name)s] [%(funcName)s:%(lineno)d] %(message)s'
+  date_format: '%Y-%m-%d %H:%M:%S'
+  encoding: 'utf-8'
+
+# 日志目录配置
+directories:
+  base: 'logs'
+  system: 'logs/system'
+  debug: 'logs/debug'
+  performance: 'logs/performance'
+
+# 文件轮转配置
+rotation:
+  max_bytes: 10485760           # 10MB
+  backup_count: 5
+  when: 'midnight'              # 按天轮转
+  interval: 1
+
+# 模块特定配置
+modules:
+  video_capture:
+    level: DEBUG
+    file: 'video_capture'
+    max_bytes: 20971520         # 20MB (视频处理日志较多)
+    
+  detector:
+    level: DEBUG
+    file: 'detector'
+    max_bytes: 15728640         # 15MB
+    
+  training:
+    level: INFO
+    file: 'training'
+    max_bytes: 10485760         # 10MB
+    
+  gui:
+    level: INFO
+    file: 'gui'
+    max_bytes: 5242880          # 5MB
+    
+  api:
+    level: INFO
+    file: 'api'
+    max_bytes: 10485760         # 10MB
+
+# 性能监控配置
+performance:
+  enabled: true
+  threshold_ms: 100             # 超过100ms的操作记录性能日志
+  metrics:
+    - fps                       # 帧率
+    - processing_time           # 处理时间
+    - memory_usage              # 内存使用
+    - cpu_usage                 # CPU使用
+    - detection_count           # 检测数量
+    - confidence_scores         # 置信度分数
+
+# 调试配置
+debug:
+  enabled: true
+  snapshot_enabled: true        # 启用调试快照
+  stack_trace: true             # 包含堆栈跟踪
+  function_timing: true         # 函数执行时间
+  
+# 控制台输出配置
+console:
+  enabled: true
+  level: INFO
+  colored: true                 # 彩色输出 (如果支持)
+  
+# 错误处理配置
+error_handling:
+  email_alerts: false           # 邮件告警 (暂未实现)
+  webhook_url: null             # Webhook告警 (暂未实现)
+  max_error_rate: 10            # 每分钟最大错误数
+
+# 日志清理配置
+cleanup:
+  enabled: true
+  retention_days: 30            # 保留30天的日志
+  cleanup_interval: 24          # 每24小时清理一次

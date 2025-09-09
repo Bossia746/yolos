@@ -1,0 +1,424 @@
+# YOLOS 外部API系统配置文件
+# External API System Configuration
+
+# API服务配置
+api:
+  host: "0.0.0.0"                    # 服务器地址
+  port: 8080                         # 服务器端口
+  debug: false                       # 调试模式
+  max_request_size: "50MB"           # 最大请求大小
+  request_timeout: 30                # 请求超时时间(秒)
+  cors_origins: "*"                  # CORS允许的源
+  
+  # API认证配置
+  authentication:
+    enabled: false                   # 是否启用认证
+    api_key_header: "X-API-Key"     # API密钥头部名称
+    valid_api_keys:                 # 有效的API密钥列表
+      - "yolos_api_key_demo"
+      - "yolos_api_key_prod"
+  
+  # 速率限制配置
+  rate_limiting:
+    enabled: true                    # 是否启用速率限制
+    requests_per_minute: 60          # 每分钟请求数限制
+    requests_per_hour: 1000          # 每小时请求数限制
+
+# 语音处理配置
+voice:
+  enabled: true                      # 是否启用语音功能
+  language: "zh-CN"                  # 语音识别语言
+  timeout: 5.0                       # 语音监听超时时间(秒)
+  confidence_threshold: 0.7          # 语音识别置信度阈值
+  
+  # TTS配置
+  tts:
+    enabled: true                    # 是否启用语音合成
+    voice_rate: 150                  # 语音速度
+    voice_volume: 0.8                # 语音音量
+    voice_language: "zh"             # 语音合成语言
+  
+  # 语音命令映射
+  command_mappings:
+    # 设备移动命令
+    movement_commands:
+      - keywords: ["移动到", "去到", "前往"]
+        command: "move_to_position"
+        extract_location: true
+      - keywords: ["转向", "旋转", "转动"]
+        command: "rotate_camera"
+        extract_angle: true
+      - keywords: ["回到原点", "返回", "回家"]
+        command: "return_home"
+    
+    # 摄像头控制命令
+    camera_commands:
+      - keywords: ["放大", "拉近"]
+        command: "zoom_in"
+      - keywords: ["缩小", "拉远"]
+        command: "zoom_out"
+      - keywords: ["拍照", "拍张照片"]
+        command: "take_photo"
+      - keywords: ["录像", "开始录像"]
+        command: "start_recording"
+      - keywords: ["停止录像", "结束录像"]
+        command: "stop_recording"
+    
+    # 识别任务命令
+    recognition_commands:
+      - keywords: ["识别药物", "检查药品", "药物识别"]
+        task_type: "medication_detection"
+      - keywords: ["监控宠物", "看看宠物", "宠物监控"]
+        task_type: "pet_monitoring"
+      - keywords: ["检测跌倒", "跌倒检测", "摔倒检测"]
+        task_type: "fall_detection"
+      - keywords: ["安全监控", "安防监控", "监控安全"]
+        task_type: "security_surveillance"
+      - keywords: ["监控植物", "检查植物", "植物监控"]
+        task_type: "plant_monitoring"
+      - keywords: ["清点物品", "物品清点", "库存检查"]
+        task_type: "object_inventory"
+      - keywords: ["医疗分析", "健康检查", "医疗检测"]
+        task_type: "medical_analysis"
+      - keywords: ["手势识别", "识别手势", "手势检测"]
+        task_type: "gesture_recognition"
+      - keywords: ["交通监控", "监控交通", "交通检测"]
+        task_type: "traffic_monitoring"
+
+# 设备控制配置
+device:
+  # 移动控制
+  movement:
+    max_move_distance: 10.0          # 最大移动距离(米)
+    move_speed: 1.0                  # 移动速度(米/秒)
+    acceleration: 0.5                # 加速度(米/秒²)
+    position_tolerance: 0.1          # 位置容差(米)
+    
+    # 安全区域定义
+    safe_zones:
+      - name: "客厅"
+        bounds: {"x_min": -2, "x_max": 5, "y_min": -2, "y_max": 5}
+      - name: "卧室"
+        bounds: {"x_min": 3, "x_max": 8, "y_min": -1, "y_max": 4}
+      - name: "厨房"
+        bounds: {"x_min": -1, "x_max": 4, "y_min": 3, "y_max": 8}
+    
+    # 禁止区域
+    forbidden_zones:
+      - name: "楼梯"
+        bounds: {"x_min": -3, "x_max": -2, "y_min": -1, "y_max": 2}
+  
+  # 摄像头控制
+  camera:
+    # 旋转范围
+    rotation_range:
+      pan_min: -180                  # 水平旋转最小角度
+      pan_max: 180                   # 水平旋转最大角度
+      tilt_min: -90                  # 垂直旋转最小角度
+      tilt_max: 90                   # 垂直旋转最大角度
+    
+    # 缩放范围
+    zoom_range:
+      min: 0.5                       # 最小缩放倍数
+      max: 5.0                       # 最大缩放倍数
+      step: 0.1                      # 缩放步长
+    
+    # 自动对焦
+    auto_focus:
+      enabled: true                  # 是否启用自动对焦
+      focus_speed: "normal"          # 对焦速度: slow/normal/fast
+    
+    # 图像质量
+    image_quality:
+      resolution: "1920x1080"        # 分辨率
+      fps: 30                        # 帧率
+      brightness: 50                 # 亮度 (0-100)
+      contrast: 50                   # 对比度 (0-100)
+      saturation: 50                 # 饱和度 (0-100)
+  
+  # 照明控制
+  lighting:
+    enabled: true                    # 是否支持照明控制
+    brightness_range: [0, 100]       # 亮度范围
+    color_temperature_range: [2700, 6500]  # 色温范围(K)
+    
+  # 电源管理
+  power:
+    battery_monitoring: true         # 是否监控电池
+    low_battery_threshold: 20        # 低电量阈值(%)
+    auto_charging: true              # 是否支持自动充电
+    charging_station_position: {"x": 0, "y": 0, "z": 0}  # 充电站位置
+
+# 识别系统配置
+recognition:
+  # 基础配置
+  default_confidence_threshold: 0.6  # 默认置信度阈值
+  max_concurrent_tasks: 5            # 最大并发任务数
+  task_timeout: 30                   # 任务超时时间(秒)
+  result_cache_ttl: 300              # 结果缓存时间(秒)
+  
+  # 任务优先级配置
+  task_priorities:
+    emergency_detection: 10          # 紧急检测
+    fall_detection: 9                # 跌倒检测
+    security_surveillance: 8         # 安全监控
+    medical_analysis: 7              # 医疗分析
+    medication_detection: 6          # 药物检测
+    pet_monitoring: 5                # 宠物监控
+    gesture_recognition: 4           # 手势识别
+    plant_monitoring: 3              # 植物监控
+    traffic_monitoring: 3            # 交通监控
+    object_inventory: 2              # 物品清点
+    general_recognition: 1           # 通用识别
+  
+  # 专项识别配置
+  specialized_recognition:
+    medication_detection:
+      enabled: true
+      confidence_threshold: 0.8
+      ocr_enabled: true              # 启用OCR识别药品名称
+      expiry_date_check: true        # 检查过期日期
+      dosage_analysis: true          # 剂量分析
+      
+    pet_monitoring:
+      enabled: true
+      confidence_threshold: 0.7
+      species_recognition: true      # 物种识别
+      behavior_analysis: true       # 行为分析
+      health_monitoring: true       # 健康监控
+      
+    fall_detection:
+      enabled: true
+      confidence_threshold: 0.8
+      real_time_monitoring: true    # 实时监控
+      emergency_alert: true         # 紧急报警
+      pose_analysis: true           # 姿态分析
+      
+    medical_analysis:
+      enabled: true
+      confidence_threshold: 0.75
+      facial_analysis: true         # 面部分析
+      vital_signs_detection: false  # 生命体征检测(需要特殊硬件)
+      symptom_detection: true       # 症状检测
+
+# WebSocket配置
+websocket:
+  enabled: true                      # 是否启用WebSocket
+  ping_interval: 25                  # Ping间隔(秒)
+  ping_timeout: 60                   # Ping超时(秒)
+  max_connections: 100               # 最大连接数
+  
+  # 事件配置
+  events:
+    device_status_update: true       # 设备状态更新
+    recognition_result: true         # 识别结果
+    task_progress: true              # 任务进度
+    emergency_alert: true            # 紧急警报
+    voice_command: true              # 语音命令
+
+# 数据存储配置
+storage:
+  # 图像存储
+  images:
+    enabled: true                    # 是否存储图像
+    storage_path: "data/images"      # 存储路径
+    max_storage_size: "10GB"         # 最大存储大小
+    retention_days: 30               # 保留天数
+    compression: true                # 是否压缩
+    
+  # 识别结果存储
+  results:
+    enabled: true                    # 是否存储结果
+    storage_path: "data/results"     # 存储路径
+    format: "json"                   # 存储格式: json/csv/database
+    retention_days: 90               # 保留天数
+    
+  # 语音记录存储
+  voice_records:
+    enabled: false                   # 是否存储语音记录
+    storage_path: "data/voice"       # 存储路径
+    retention_days: 7                # 保留天数
+
+# 外部集成配置
+integrations:
+  # MQTT集成
+  mqtt:
+    enabled: false                   # 是否启用MQTT
+    broker_host: "localhost"         # MQTT代理地址
+    broker_port: 1883                # MQTT代理端口
+    username: ""                     # 用户名
+    password: ""                     # 密码
+    client_id: "yolos_api"          # 客户端ID
+    
+    # 主题配置
+    topics:
+      device_status: "yolos/device/status"
+      recognition_results: "yolos/recognition/results"
+      voice_commands: "yolos/voice/commands"
+      emergency_alerts: "yolos/alerts/emergency"
+      task_updates: "yolos/tasks/updates"
+  
+  # Webhook集成
+  webhook:
+    enabled: false                   # 是否启用Webhook
+    endpoints:
+      emergency_alert: ""            # 紧急警报端点
+      recognition_result: ""         # 识别结果端点
+      device_status: ""              # 设备状态端点
+      task_completion: ""            # 任务完成端点
+    
+    # 重试配置
+    retry:
+      max_attempts: 3                # 最大重试次数
+      retry_delay: 5                 # 重试延迟(秒)
+      backoff_factor: 2              # 退避因子
+  
+  # 数据库集成
+  database:
+    enabled: false                   # 是否启用数据库
+    type: "sqlite"                   # 数据库类型: sqlite/mysql/postgresql
+    connection_string: "sqlite:///data/yolos_api.db"
+    
+    # 表配置
+    tables:
+      tasks: true                    # 任务表
+      results: true                  # 结果表
+      device_logs: true              # 设备日志表
+      voice_commands: true           # 语音命令表
+  
+  # 云服务集成
+  cloud_services:
+    # 阿里云
+    aliyun:
+      enabled: false
+      access_key_id: ""
+      access_key_secret: ""
+      region: "cn-hangzhou"
+      
+    # 腾讯云
+    tencent_cloud:
+      enabled: false
+      secret_id: ""
+      secret_key: ""
+      region: "ap-beijing"
+      
+    # 百度云
+    baidu_cloud:
+      enabled: false
+      api_key: ""
+      secret_key: ""
+
+# 安全配置
+security:
+  # HTTPS配置
+  https:
+    enabled: false                   # 是否启用HTTPS
+    cert_file: "certs/server.crt"   # 证书文件
+    key_file: "certs/server.key"    # 私钥文件
+  
+  # 访问控制
+  access_control:
+    enabled: false                   # 是否启用访问控制
+    allowed_ips: []                  # 允许的IP地址列表
+    blocked_ips: []                  # 禁止的IP地址列表
+  
+  # 数据加密
+  encryption:
+    enabled: false                   # 是否启用数据加密
+    algorithm: "AES-256-GCM"         # 加密算法
+    key_rotation_days: 30            # 密钥轮换天数
+
+# 监控和日志配置
+monitoring:
+  # 性能监控
+  performance:
+    enabled: true                    # 是否启用性能监控
+    metrics_interval: 10             # 指标收集间隔(秒)
+    
+    # 监控指标
+    metrics:
+      - "api_request_count"          # API请求数
+      - "api_response_time"          # API响应时间
+      - "recognition_task_count"     # 识别任务数
+      - "device_status"              # 设备状态
+      - "memory_usage"               # 内存使用
+      - "cpu_usage"                  # CPU使用
+  
+  # 健康检查
+  health_check:
+    enabled: true                    # 是否启用健康检查
+    check_interval: 30               # 检查间隔(秒)
+    
+    # 检查项目
+    checks:
+      - "api_service"                # API服务
+      - "recognition_system"         # 识别系统
+      - "device_connection"          # 设备连接
+      - "storage_space"              # 存储空间
+      - "memory_usage"               # 内存使用
+
+# 日志配置
+logging:
+  level: "INFO"                      # 日志级别: DEBUG/INFO/WARNING/ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # 文件日志
+  file_logging:
+    enabled: true                    # 是否启用文件日志
+    log_file: "logs/external_api.log"
+    max_file_size: "100MB"           # 最大文件大小
+    backup_count: 5                  # 备份文件数量
+    rotation: "daily"                # 轮换方式: daily/weekly/monthly
+  
+  # 控制台日志
+  console_logging:
+    enabled: true                    # 是否启用控制台日志
+    colored: true                    # 是否使用彩色输出
+  
+  # 日志类别
+  categories:
+    api_requests: true               # API请求日志
+    voice_commands: true             # 语音命令日志
+    device_control: true             # 设备控制日志
+    recognition_tasks: true          # 识别任务日志
+    errors: true                     # 错误日志
+    performance: true                # 性能日志
+
+# 开发和调试配置
+development:
+  # 调试模式
+  debug_mode: false                  # 是否启用调试模式
+  
+  # 模拟模式
+  simulation_mode:
+    enabled: false                   # 是否启用模拟模式
+    simulate_device: true            # 模拟设备
+    simulate_recognition: true       # 模拟识别
+    simulate_voice: true             # 模拟语音
+  
+  # 测试配置
+  testing:
+    test_data_path: "test_data"      # 测试数据路径
+    mock_responses: false            # 是否使用模拟响应
+    
+# 部署配置
+deployment:
+  # 容器化配置
+  docker:
+    enabled: false                   # 是否支持Docker部署
+    image_name: "yolos/external-api"
+    tag: "latest"
+    
+  # 集群配置
+  cluster:
+    enabled: false                   # 是否支持集群部署
+    nodes: []                        # 集群节点列表
+    load_balancer: false             # 是否使用负载均衡
+    
+  # 自动扩缩容
+  auto_scaling:
+    enabled: false                   # 是否启用自动扩缩容
+    min_instances: 1                 # 最小实例数
+    max_instances: 5                 # 最大实例数
+    cpu_threshold: 80                # CPU阈值(%)
+    memory_threshold: 80             # 内存阈值(%)

@@ -1,0 +1,302 @@
+# YOLOS AIoT平台配置文件
+# 可移动AIoT平台模块化配置
+
+# ===== 核心系统配置 =====
+core:
+  platform_id: "YOLOS_MOBILE_001"
+  platform_type: "mobile_medical_robot"
+  debug_mode: false
+  log_level: "INFO"
+  
+# ===== 模块启用配置 =====
+modules:
+  # 基础视觉模块
+  vision_capture: true
+  image_quality_enhancement: true
+  anti_spoofing_detection: true
+  
+  # 医疗检测模块
+  medical_facial_analysis: true
+  fall_detection: true
+  emergency_response: true
+  
+  # 扩展功能模块
+  medication_recognition: true    # 药物识别
+  robotic_arm_control: true      # 机械臂控制
+  external_communication: true   # 外部通信推送
+  
+  # 硬件集成模块
+  gps_tracking: true
+  sensor_fusion: true
+  battery_monitoring: true
+
+# ===== 摔倒检测配置 =====
+fall_detection:
+  enabled: true
+  
+  # 检测参数
+  detection_sensitivity: 0.8      # 检测灵敏度 (0.0-1.0)
+  min_fall_duration: 2.0         # 最小摔倒持续时间 (秒)
+  aspect_ratio_threshold: 2.5    # 长宽比阈值
+  movement_threshold: 50         # 运动阈值
+  
+  # 时间监控配置
+  monitoring:
+    check_interval: 5.0          # 检查间隔 (秒)
+    no_movement_threshold: 30.0  # 无运动阈值 (秒) - 医疗领域标准
+    alert_escalation_time: 60.0  # 报警升级时间 (秒)
+    max_monitoring_time: 300.0   # 最大监控时间 (秒)
+  
+  # 起身检测配置
+  recovery:
+    min_recovery_time: 5.0       # 最小恢复时间 (秒)
+    recovery_height_threshold: 0.6 # 恢复高度阈值
+    recovery_confidence: 0.8     # 恢复置信度
+
+# ===== 药物识别配置 =====
+medication_recognition:
+  enabled: true
+  
+  # 数据库配置
+  database:
+    medication_db_path: "data/medications/medication_database.json"
+    image_dataset_path: "data/medications/images/"
+    model_path: "models/medication_recognition_model.pth"
+  
+  # 识别参数
+  recognition:
+    confidence_threshold: 0.85   # 识别置信度阈值
+    max_detection_distance: 50   # 最大检测距离 (cm)
+    roi_expansion_factor: 1.2    # ROI扩展因子
+    
+  # 特征提取
+  features:
+    color_analysis: true         # 颜色分析
+    shape_analysis: true         # 形状分析
+    text_recognition: true       # 文字识别 (OCR)
+    size_estimation: true        # 尺寸估算
+    
+  # 训练配置
+  training:
+    auto_learning: true          # 自动学习新药物
+    feedback_learning: true      # 反馈学习
+    batch_size: 32
+    learning_rate: 0.001
+
+# ===== 机械臂控制配置 =====
+robotic_arm:
+  enabled: true
+  
+  # 硬件配置
+  hardware:
+    arm_type: "6dof_serial"      # 机械臂类型
+    communication_port: "COM3"   # 通信端口
+    baudrate: 115200            # 波特率
+    timeout: 5.0                # 超时时间
+  
+  # 运动参数
+  motion:
+    max_speed: 50               # 最大速度 (mm/s)
+    acceleration: 100           # 加速度 (mm/s²)
+    precision: 1.0              # 精度 (mm)
+    safety_distance: 20         # 安全距离 (mm)
+  
+  # 抓取配置
+  gripper:
+    grip_force: 50              # 抓取力度 (0-100)
+    grip_timeout: 3.0           # 抓取超时 (秒)
+    release_delay: 1.0          # 释放延迟 (秒)
+  
+  # 路径规划
+  path_planning:
+    algorithm: "rrt_star"       # 路径规划算法
+    obstacle_avoidance: true    # 避障功能
+    smooth_trajectory: true     # 轨迹平滑
+
+# ===== 外部通信配置 =====
+external_communication:
+  enabled: true
+  
+  # 短信服务配置
+  sms:
+    provider: "twilio"          # 服务提供商
+    account_sid: "your_account_sid"
+    auth_token: "your_auth_token"
+    from_number: "+1234567890"
+    
+    # 紧急联系人配置
+    emergency_contacts:
+      - name: "家属1"
+        phone: "+86138****1234"
+        priority: 1
+        relationship: "家属"
+      - name: "医生"
+        phone: "+86139****5678"
+        priority: 2
+        relationship: "主治医生"
+      - name: "护士站"
+        phone: "+86137****9012"
+        priority: 3
+        relationship: "护士站"
+  
+  # 推送服务配置
+  push_notification:
+    # 微信推送
+    wechat:
+      enabled: true
+      app_id: "your_wechat_app_id"
+      app_secret: "your_wechat_app_secret"
+      template_id: "your_template_id"
+    
+    # 钉钉推送
+    dingtalk:
+      enabled: true
+      webhook_url: "https://oapi.dingtalk.com/robot/send?access_token=your_token"
+      secret: "your_secret"
+    
+    # 邮件推送
+    email:
+      enabled: true
+      smtp_server: "smtp.gmail.com"
+      smtp_port: 587
+      username: "your_email@gmail.com"
+      password: "your_app_password"
+      recipients:
+        - "family@example.com"
+        - "doctor@hospital.com"
+  
+  # HTTP回调配置
+  webhook:
+    enabled: true
+    endpoints:
+      - name: "医院系统"
+        url: "https://hospital.com/api/emergency"
+        method: "POST"
+        headers:
+          Authorization: "Bearer your_token"
+          Content-Type: "application/json"
+      - name: "监控中心"
+        url: "https://monitoring.com/api/alert"
+        method: "POST"
+
+# ===== 医疗分析配置 =====
+medical_analysis:
+  enabled: true
+  
+  # 面部分析
+  facial_analysis:
+    confidence_threshold: 0.7
+    analysis_interval: 2.0      # 分析间隔 (秒)
+    
+  # 生命体征监测
+  vital_signs:
+    heart_rate_monitoring: true
+    breathing_monitoring: true
+    temperature_estimation: true
+    
+  # 症状检测
+  symptom_detection:
+    enable_all_symptoms: true
+    critical_symptoms_only: false
+
+# ===== 硬件集成配置 =====
+hardware:
+  # 摄像头配置
+  camera:
+    device_id: 0
+    resolution: [640, 480]
+    fps: 30
+    auto_focus: true
+    
+  # GPS配置
+  gps:
+    enabled: true
+    update_interval: 10.0       # 更新间隔 (秒)
+    accuracy_threshold: 5.0     # 精度阈值 (米)
+    
+  # 传感器配置
+  sensors:
+    imu: true                   # 惯性测量单元
+    lidar: false               # 激光雷达
+    ultrasonic: true           # 超声波传感器
+    
+  # 电池监控
+  battery:
+    low_battery_threshold: 20   # 低电量阈值 (%)
+    critical_battery_threshold: 10 # 危险电量阈值 (%)
+    auto_return_home: true      # 自动返回充电
+
+# ===== 数据存储配置 =====
+data_storage:
+  # 本地存储
+  local:
+    base_path: "data/"
+    max_storage_size: "10GB"
+    auto_cleanup: true
+    retention_days: 30
+    
+  # 云存储 (可选)
+  cloud:
+    enabled: false
+    provider: "aws_s3"
+    bucket_name: "yolos-medical-data"
+    
+# ===== 安全配置 =====
+security:
+  # 数据加密
+  encryption:
+    enabled: true
+    algorithm: "AES-256"
+    key_rotation_days: 90
+    
+  # 访问控制
+  access_control:
+    require_authentication: true
+    session_timeout: 3600       # 会话超时 (秒)
+    
+  # 隐私保护
+  privacy:
+    anonymize_data: true
+    blur_faces_in_logs: true
+    
+# ===== 性能优化配置 =====
+performance:
+  # 处理优化
+  processing:
+    max_concurrent_tasks: 4
+    frame_skip_ratio: 0.2       # 跳帧比例
+    roi_processing_only: true   # 仅处理ROI区域
+    
+  # 内存管理
+  memory:
+    max_memory_usage: "2GB"
+    garbage_collection_interval: 60
+    
+  # GPU加速
+  gpu:
+    enabled: false              # 根据硬件情况启用
+    device_id: 0
+    memory_limit: "1GB"
+
+# ===== 调试和监控配置 =====
+monitoring:
+  # 性能监控
+  performance_monitoring: true
+  
+  # 健康检查
+  health_check:
+    enabled: true
+    check_interval: 30          # 检查间隔 (秒)
+    
+  # 日志配置
+  logging:
+    level: "INFO"
+    file_path: "logs/aiot_platform.log"
+    max_file_size: "100MB"
+    backup_count: 5
+    
+  # 统计报告
+  statistics:
+    enabled: true
+    report_interval: 3600       # 报告间隔 (秒)
+    include_performance_metrics: true

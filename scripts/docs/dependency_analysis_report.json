@@ -1,0 +1,101 @@
+{
+  "project_summary": {
+    "total_modules": 7,
+    "total_dependencies": 9,
+    "circular_dependencies": 0,
+    "redundancy_issues": 2,
+    "complexity_issues": 2
+  },
+  "circular_dependencies": [],
+  "redundant_modules": [
+    {
+      "type": "duplicate_classes",
+      "data": {}
+    },
+    {
+      "type": "duplicate_functions",
+      "data": {
+        "main": [
+          "analyze_dependencies",
+          "download_training_datasets",
+          "install",
+          "quick_start_enhanced_training",
+          "setup_hybrid_system",
+          "train_offline_models"
+        ],
+        "__init__": [
+          "analyze_dependencies",
+          "download_training_datasets",
+          "install",
+          "quick_start_enhanced_training",
+          "setup_hybrid_system"
+        ]
+      }
+    }
+  ],
+  "complexity_issues": [
+    {
+      "type": "large_file",
+      "module": "install",
+      "lines": 567,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "install",
+      "definition_count": 23,
+      "severity": "medium"
+    }
+  ],
+  "module_details": {
+    "analyze_dependencies": {
+      "file_path": "analyze_dependencies.py",
+      "lines": 414,
+      "imports": 8,
+      "classes": 1,
+      "functions": 17
+    },
+    "download_training_datasets": {
+      "file_path": "download_training_datasets.py",
+      "lines": 438,
+      "imports": 12,
+      "classes": 1,
+      "functions": 12
+    },
+    "install": {
+      "file_path": "install.py",
+      "lines": 567,
+      "imports": 8,
+      "classes": 1,
+      "functions": 22
+    },
+    "quick_start_enhanced_training": {
+      "file_path": "quick_start_enhanced_training.py",
+      "lines": 324,
+      "imports": 10,
+      "classes": 1,
+      "functions": 9
+    },
+    "setup_hybrid_system": {
+      "file_path": "setup_hybrid_system.py",
+      "lines": 435,
+      "imports": 10,
+      "classes": 1,
+      "functions": 8
+    },
+    "setup_mirrors": {
+      "file_path": "setup_mirrors.py",
+      "lines": 71,
+      "imports": 2,
+      "classes": 0,
+      "functions": 3
+    },
+    "train_offline_models": {
+      "file_path": "train_offline_models.py",
+      "lines": 116,
+      "imports": 7,
+      "classes": 0,
+      "functions": 1
+    }
+  }
+}

@@ -1,0 +1,19 @@
+
+Object Recognition Session Report
+================================
+Duration: 471.4 seconds
+Average FPS: 28.4
+Total Frames: 13404
+
+Detection Results:
+• Objects Detected: 2442
+• Colors Identified: 2415
+• Shapes Recognized: 2442
+• Texts Found: 1295
+
+Performance:
+• Detection Rate: 0.182 objects/frame
+• Color Recognition Rate: 98.89%
+• Shape Recognition Rate: 100.00%
+• Text Detection Rate: 53.03%
+            

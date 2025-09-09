@@ -1,0 +1,397 @@
+# 大模型自学习系统配置文件
+# YOLOS Self-Learning Configuration
+
+# 系统基础配置
+system:
+  name: "YOLOS Self-Learning System"
+  version: "1.0.0"
+  debug_mode: true
+  log_level: "INFO"
+
+# 大模型配置
+llm_providers:
+  # OpenAI GPT-4V
+  openai_gpt4v:
+    enabled: true
+    api_key: "${OPENAI_API_KEY}"  # 环境变量
+    base_url: "https://api.openai.com/v1"
+    model: "gpt-4-vision-preview"
+    max_tokens: 2000
+    temperature: 0.1
+    timeout: 30
+    rate_limit: 60  # 每分钟请求数
+    
+  # Claude Vision
+  claude_vision:
+    enabled: true
+    api_key: "${CLAUDE_API_KEY}"
+    base_url: "https://api.anthropic.com/v1"
+    model: "claude-3-opus-20240229"
+    max_tokens: 2000
+    temperature: 0.1
+    timeout: 30
+    rate_limit: 50
+    
+  # 通义千问VL
+  qwen_vl:
+    enabled: true
+    api_key: "${QWEN_API_KEY}"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-vl-plus"
+    max_tokens: 2000
+    temperature: 0.1
+    timeout: 30
+    rate_limit: 100
+    
+  # 百度文心一言VL
+  baidu_ernie_vl:
+    enabled: false  # 默认关闭，需要复杂的OAuth流程
+    api_key: "${BAIDU_API_KEY}"
+    secret_key: "${BAIDU_SECRET_KEY}"
+    base_url: "https://aip.baidubce.com/rpc/2.0/ai_custom/v1"
+    model: "ernie-bot-4.0"
+    max_tokens: 2000
+    temperature: 0.1
+    timeout: 30
+    rate_limit: 60
+    
+  # 智谱GLM-4V
+  zhipu_glm4v:
+    enabled: true
+    api_key: "${ZHIPU_API_KEY}"
+    base_url: "https://open.bigmodel.cn/api/paas/v4"
+    model: "glm-4v"
+    max_tokens: 2000
+    temperature: 0.1
+    timeout: 30
+    rate_limit: 100
+
+# 自学习配置
+self_learning:
+  # 基础设置
+  enabled: true
+  auto_trigger: true
+  require_user_confirmation: false
+  
+  # 触发条件
+  triggers:
+    confidence_threshold: 0.5      # 置信度低于此值触发
+    unknown_object_threshold: 0.3  # 未知对象阈值
+    quality_threshold: 0.4         # 图像质量阈值
+    anti_spoofing_threshold: 0.7   # 反欺骗阈值
+    
+  # 学习策略
+  learning_strategy:
+    primary_provider: "openai_gpt4v"
+    fallback_providers: ["claude_vision", "qwen_vl", "zhipu_glm4v"]
+    max_retries: 3
+    retry_delay: 2.0  # 秒
+    
+  # 批量学习
+  batch_learning:
+    enabled: true
+    batch_size: 10
+    interval: 3600  # 秒，每小时执行一次
+    max_daily_batches: 24
+    
+  # 学习记录管理
+  records:
+    max_records: 10000
+    cleanup_interval: 86400  # 秒，每天清理一次
+    retention_days: 30
+    backup_enabled: true
+    backup_interval: 604800  # 秒，每周备份一次
+
+# 识别模式配置
+recognition_modes:
+  # 默认模式
+  default_mode: "hybrid_auto"
+  
+  # 离线模式
+  offline_only:
+    description: "仅使用本地模型进行识别"
+    confidence_boost: 0.0
+    fallback_enabled: false
+    
+  # 混合自动模式
+  hybrid_auto:
+    description: "自动选择离线或在线识别"
+    llm_trigger_threshold: 0.5
+    confidence_boost: 0.1
+    fallback_enabled: true
+    
+  # 自学习模式
+  self_learning:
+    description: "强制使用大模型进行学习"
+    always_use_llm: true
+    confidence_boost: 0.2
+    learning_priority: "high"
+    
+  # 手动确认模式
+  manual_confirm:
+    description: "需要用户确认的识别模式"
+    confirmation_threshold: 0.7
+    auto_approve_threshold: 0.9
+    timeout: 300  # 秒
+
+# 置信度配置
+confidence_levels:
+  very_high:
+    threshold: 0.9
+    color: "#28a745"  # 绿色
+    action: "auto_accept"
+    
+  high:
+    threshold: 0.7
+    color: "#17a2b8"  # 蓝色
+    action: "accept_with_log"
+    
+  medium:
+    threshold: 0.5
+    color: "#ffc107"  # 黄色
+    action: "review_recommended"
+    
+  low:
+    threshold: 0.3
+    color: "#fd7e14"  # 橙色
+    action: "manual_review"
+    
+  very_low:
+    threshold: 0.0
+    color: "#dc3545"  # 红色
+    action: "reject_or_learn"
+
+# 图像处理配置
+image_processing:
+  # 尺寸限制
+  max_width: 1024
+  max_height: 1024
+  min_width: 224
+  min_height: 224
+  
+  # 质量设置
+  jpeg_quality: 85
+  png_compression: 6
+  
+  # 增强设置
+  auto_enhance: true
+  clahe_enabled: true
+  clahe_clip_limit: 2.0
+  clahe_tile_size: [8, 8]
+  
+  # 格式支持
+  supported_formats: ["jpg", "jpeg", "png", "bmp", "tiff"]
+  output_format: "jpeg"
+
+# 提示词配置
+prompts:
+  # 系统提示词
+  system_prompt: |
+    你是一个专业的视觉分析AI助手，专门用于医疗护理、安全监控和日常生活场景的智能识别。
+    你的任务是准确分析图像内容，识别对象，评估安全性，并提供有用的建议。
+    
+    请始终保持专业、准确和有帮助的态度。对于医疗相关的内容，请特别谨慎和详细。
+    
+  # 分析提示词
+  analysis_prompt: |
+    请仔细分析这张图像，并按照以下JSON格式提供详细信息：
+    
+    {
+      "scene_description": "详细的场景描述",
+      "detected_objects": [
+        {
+          "name": "对象名称",
+          "confidence": 0.95,
+          "attributes": ["属性1", "属性2"],
+          "location": "在图像中的位置描述"
+        }
+      ],
+      "scene_category": "场景类别(medical/emergency/daily_object/person/animal/plant等)",
+      "confidence": 0.85,
+      "safety_assessment": {
+        "status": "safe/warning/danger",
+        "danger_level": "low/medium/high",
+        "risk_factors": ["风险因素列表"]
+      },
+      "medical_relevance": {
+        "relevance": "high/medium/low/none",
+        "emergency_level": "critical/high/medium/low/none",
+        "medical_indicators": ["医疗指标列表"]
+      },
+      "suggested_actions": ["建议行动列表"],
+      "learning_keywords": ["学习关键词列表"]
+    }
+    
+  # 医疗专用提示词
+  medical_prompt: |
+    特别关注以下医疗相关内容：
+    
+    1. 药物和医疗器械识别
+    2. 人员健康状态评估
+    3. 紧急情况标识
+    4. 安全隐患检测
+    5. 跌倒或意外情况
+    6. 面部表情和生理状态
+    7. 医疗环境安全性
+    
+    对于任何可能的医疗紧急情况，请提供明确的警告和建议。
+    
+  # 学习提示词
+  learning_prompt: |
+    这是一个自学习场景，系统之前无法准确识别此图像内容。
+    请提供详细的分析，帮助系统学习和改进：
+    
+    1. 为什么这个场景可能难以识别？
+    2. 关键的视觉特征是什么？
+    3. 应该关注哪些细节？
+    4. 如何区分相似的对象？
+    5. 有哪些上下文线索？
+
+# 存储配置
+storage:
+  # 数据目录
+  data_dir: "data/self_learning"
+  
+  # 知识库
+  knowledge_base:
+    path: "data/self_learning/knowledge_base.json"
+    backup_path: "data/self_learning/backups/knowledge_base"
+    max_size_mb: 100
+    
+  # 学习记录
+  learning_records:
+    path: "data/self_learning/learning_records.json"
+    backup_path: "data/self_learning/backups/learning_records"
+    max_size_mb: 500
+    
+  # 学习图像
+  learning_images:
+    path: "data/self_learning/images"
+    backup_path: "data/self_learning/backups/images"
+    max_size_mb: 2048
+    compression: true
+    
+  # 日志文件
+  logs:
+    path: "data/self_learning/logs"
+    max_size_mb: 100
+    rotation_days: 7
+
+# 性能配置
+performance:
+  # 并发设置
+  max_concurrent_requests: 4
+  thread_pool_size: 8
+  
+  # 超时设置
+  recognition_timeout: 30.0
+  llm_timeout: 45.0
+  batch_timeout: 300.0
+  
+  # 内存管理
+  max_memory_mb: 2048
+  cache_size: 1000
+  cache_ttl: 300  # 秒
+  
+  # GPU设置
+  gpu_enabled: true
+  gpu_memory_fraction: 0.7
+  
+# 安全配置
+security:
+  # API密钥管理
+  api_keys:
+    encryption_enabled: true
+    key_rotation_days: 90
+    
+  # 数据保护
+  data_encryption: true
+  secure_deletion: true
+  
+  # 访问控制
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+    burst_limit: 20
+    
+  # 隐私保护
+  privacy:
+    anonymize_logs: true
+    data_retention_days: 30
+    auto_cleanup: true
+
+# 监控和告警
+monitoring:
+  # 性能监控
+  performance_monitoring: true
+  metrics_collection: true
+  
+  # 告警设置
+  alerts:
+    enabled: true
+    error_threshold: 10  # 每小时错误数
+    latency_threshold: 10.0  # 秒
+    
+  # 健康检查
+  health_check:
+    enabled: true
+    interval: 60  # 秒
+    timeout: 10  # 秒
+    
+# 集成配置
+integrations:
+  # 外部系统
+  external_systems:
+    enabled: false
+    webhook_url: ""
+    api_key: ""
+    
+  # 通知系统
+  notifications:
+    email_enabled: false
+    sms_enabled: false
+    push_enabled: false
+    
+  # 数据同步
+  data_sync:
+    enabled: false
+    sync_interval: 3600  # 秒
+    backup_sync: true
+
+# 开发和调试
+development:
+  # 调试模式
+  debug_mode: true
+  verbose_logging: true
+  
+  # 测试设置
+  test_mode: false
+  mock_llm_responses: false
+  
+  # 开发工具
+  profiling_enabled: false
+  memory_profiling: false
+  
+# 用户界面配置
+ui:
+  # 主题设置
+  theme: "light"  # light/dark/auto
+  
+  # 语言设置
+  language: "zh-CN"  # zh-CN/en-US
+  
+  # 显示设置
+  show_confidence_bars: true
+  show_processing_time: true
+  show_learning_status: true
+  
+  # 交互设置
+  auto_refresh: true
+  refresh_interval: 5  # 秒
+  
+  # 可视化设置
+  visualization:
+    show_bounding_boxes: true
+    show_confidence_labels: true
+    show_object_names: true
+    color_scheme: "confidence_based"

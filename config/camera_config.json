@@ -1,0 +1,23 @@
+{
+  "camera": {
+    "preferred_index": 1,
+    "fallback_indices": [2, 3, 4],
+    "use_builtin": false,
+    "width": 640,
+    "height": 480,
+    "fps": 30
+  },
+  "detection": {
+    "detection_interval": 15,
+    "display_interval": 8,
+    "result_hold_frames": 45,
+    "focus_stabilize_frames": 30,
+    "confidence_threshold": 0.5
+  },
+  "display": {
+    "show_fps": true,
+    "show_categories": true,
+    "show_summary": true,
+    "panel_transparency": 0.8
+  }
+}
