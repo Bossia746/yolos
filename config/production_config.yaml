@@ -1,0 +1,265 @@
+# 生产环境配置
+# 覆盖默认配置中的生产相关设置
+
+# 日志配置
+logging:
+  level: INFO
+  console:
+    enabled: false
+    level: ERROR
+  file:
+    enabled: true
+    level: INFO
+    path: "/var/log/yolos/yolos.log"
+    max_size: "100MB"
+    backup_count: 10
+    rotation: "daily"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  structured: true
+
+# 调试配置
+debug:
+  enabled: false
+  profiling: false
+  memory_tracking: false
+  performance_monitoring: true
+  verbose_errors: false
+
+# 生产服务器配置
+server:
+  host: "0.0.0.0"
+  port: 8080
+  debug: false
+  auto_reload: false
+  workers: 4
+  worker_class: "uvicorn.workers.UvicornWorker"
+  max_requests: 1000
+  max_requests_jitter: 100
+  timeout: 30
+  keepalive: 2
+
+# 数据库配置（生产环境）
+database:
+  type: "postgresql"
+  host: "${DB_HOST}"
+  port: 5432
+  database: "${DB_NAME}"
+  username: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
+  echo: false
+  ssl_mode: "require"
+
+# 缓存配置
+cache:
+  type: "redis"
+  host: "${REDIS_HOST}"
+  port: 6379
+  password: "${REDIS_PASSWORD}"
+  db: 0
+  ttl: 3600  # 1小时
+  max_connections: 50
+  socket_timeout: 5
+  socket_connect_timeout: 5
+
+# 模型配置（生产环境优化）
+models:
+  default_model: "yolov11m.pt"  # 生产环境使用中等模型
+  model_type: "yolov11"
+  model_size: "m"  # 生产环境使用medium版本
+  cache_dir: "/opt/yolos/models"
+  download_timeout: 600
+  auto_download: false  # 生产环境预加载
+  use_gpu: true
+  gpu_memory_fraction: 0.8
+  batch_size: 8
+  precision: "fp16"
+  model_serving:
+    max_batch_size: 32
+    max_latency_ms: 100
+    optimization_level: 3
+  
+  # YOLOv11生产配置
+  yolov11:
+    # C2PSA模块配置（生产环境完整功能）
+    c2psa:
+      enabled: true
+      attention_type: "pyramid_slice"
+      multi_scale: true
+    
+    # C3k2模块配置（生产环境完整功能）
+    c3k2:
+      enabled: true
+      parallel_conv: true
+      channel_separation: true
+      kernel_sizes: [3, 5, 7, 9]  # 生产环境使用更多卷积核
+  
+  # 生产环境性能优化
+  optimization:
+    tensorrt_optimize: true
+    dynamic_batching: true
+    half_precision: true
+    compile_model: true
+
+# 插件配置
+plugins:
+  auto_discover: false
+  auto_load: true
+  directories:
+    - "/opt/yolos/plugins"
+  hot_reload: false
+  validation:
+    strict: true
+    allow_dev_plugins: false
+    signature_verification: true
+
+# 安全配置（生产环境严格）
+security:
+  authentication:
+    required: true
+    method: "jwt"
+    secret_key: "${JWT_SECRET_KEY}"
+    algorithm: "HS256"
+    expire_minutes: 60
+  api_key:
+    required: true
+    header_name: "X-API-Key"
+  cors:
+    enabled: true
+    origins: ["${ALLOWED_ORIGINS}"]
+    methods: ["GET", "POST"]
+    headers: ["Content-Type", "Authorization", "X-API-Key"]
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+    burst_size: 20
+  ssl:
+    enabled: true
+    cert_file: "/etc/ssl/certs/yolos.crt"
+    key_file: "/etc/ssl/private/yolos.key"
+
+# 监控配置
+monitoring:
+  metrics:
+    enabled: true
+    interval: 10
+    endpoint: "/metrics"
+    prometheus:
+      enabled: true
+      port: 9090
+  health_check:
+    enabled: true
+    interval: 30
+    endpoint: "/health"
+  alerts:
+    enabled: true
+    webhook_url: "${ALERT_WEBHOOK_URL}"
+    channels:
+      - "email"
+      - "slack"
+  tracing:
+    enabled: true
+    jaeger_endpoint: "${JAEGER_ENDPOINT}"
+    sample_rate: 0.1
+
+# 测试配置
+testing:
+  mock_external_apis: false
+  test_data_dir: "/opt/yolos/test_data"
+  coverage:
+    enabled: false
+
+# 性能配置（生产环境）
+performance:
+  max_workers: 8
+  queue_size: 1000
+  timeout: 60
+  memory_limit: "8GB"
+  cpu_limit: "4"
+  gc_threshold: 700
+  connection_pool_size: 100
+  
+# 存储配置
+storage:
+  type: "s3"
+  bucket: "${S3_BUCKET}"
+  region: "${S3_REGION}"
+  access_key: "${S3_ACCESS_KEY}"
+  secret_key: "${S3_SECRET_KEY}"
+  base_path: "yolos/prod"
+  temp_dir: "/tmp/yolos"
+  cleanup_interval: 1800  # 30分钟
+  encryption: true
+  
+# API配置
+api:
+  version: "v1"
+  prefix: "/api/v1"
+  docs:
+    enabled: false  # 生产环境关闭文档
+  rate_limit:
+    enabled: true
+    requests_per_second: 10
+    burst: 20
+  compression:
+    enabled: true
+    algorithm: "gzip"
+    level: 6
+    
+# 外部服务配置（生产环境）
+external_services:
+  openai:
+    enabled: true
+    api_key: "${OPENAI_API_KEY}"
+    timeout: 30
+    retry_attempts: 3
+  modelscope:
+    enabled: true
+    api_key: "${MODELSCOPE_API_KEY}"
+    timeout: 60
+  cloud_storage:
+    enabled: true
+    provider: "aws"
+    
+# 备份配置
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # 每天凌晨2点
+  retention_days: 30
+  storage:
+    type: "s3"
+    bucket: "${BACKUP_BUCKET}"
+  compression: true
+  encryption: true
+  
+# 集群配置
+cluster:
+  enabled: true
+  node_id: "${NODE_ID}"
+  discovery:
+    type: "consul"
+    endpoint: "${CONSUL_ENDPOINT}"
+  load_balancing:
+    algorithm: "round_robin"
+    health_check_interval: 30
+    
+# 资源限制
+resource_limits:
+  max_concurrent_requests: 1000
+  max_request_size: "10MB"
+  max_response_size: "50MB"
+  request_timeout: 30
+  
+# 审计配置
+audit:
+  enabled: true
+  log_requests: true
+  log_responses: false
+  sensitive_fields:
+    - "password"
+    - "api_key"
+    - "token"
+  retention_days: 90

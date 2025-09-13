@@ -1,0 +1,51 @@
+# Include the README and license
+include README.md
+include LICENSE
+include requirements.txt
+include pyproject.toml
+
+# Include configuration files
+recursive-include config *.yaml *.yml *.json *.toml *.ini
+recursive-include configs *.yaml *.yml *.json *.toml *.ini
+
+# Include model files
+recursive-include models *.pt *.pth *.onnx *.trt *.engine
+recursive-include src/models *.pt *.pth *.onnx *.trt *.engine
+
+# Include web assets
+recursive-include web/templates *.html *.htm
+recursive-include web/static *.css *.js *.png *.jpg *.jpeg *.gif *.svg *.ico
+
+# Include documentation
+recursive-include docs *.md *.rst *.txt *.png *.jpg *.jpeg *.gif *.svg
+
+# Include deployment scripts
+recursive-include deployments *.sh *.bat *.ps1 *.yaml *.yml *.json
+recursive-include scripts *.py *.sh *.bat *.ps1
+
+# Include test data
+recursive-include tests/data *.jpg *.jpeg *.png *.mp4 *.avi *.json *.yaml
+recursive-include test_images *.jpg *.jpeg *.png *.bmp *.tiff
+
+# Include example files
+recursive-include examples *.py *.md *.jpg *.jpeg *.png
+
+# Exclude unwanted files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude .git*
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude *.dylib
+global-exclude *.dll
+global-exclude .pytest_cache
+global-exclude .mypy_cache
+global-exclude .coverage
+global-exclude htmlcov
+
+# Include version file if exists
+include VERSION
+include CHANGELOG.md
+include HISTORY.md

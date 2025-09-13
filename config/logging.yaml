@@ -1,5 +1,29 @@
 # YOLOS日志系统配置文件
 
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  default:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  detailed:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s() - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  json:
+    format: '{"timestamp": "%(asctime)s", "name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s", "filename": "%(filename)s", "lineno": %(lineno)d}'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  structured:
+    format: '{"timestamp": "%(asctime)s", "session_id": "%(session_id)s", "level": "%(levelname)s", "event_type": "%(event_type)s", "message": "%(message)s", "context": %(context)s}'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  performance:
+    format: '{"timestamp": "%(asctime)s", "operation": "%(operation)s", "duration_ms": %(duration_ms)s, "cpu_percent": %(cpu_percent)s, "memory_mb": %(memory_mb)s}'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+
 # 全局日志配置
 global:
   level: INFO                    # 全局日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL

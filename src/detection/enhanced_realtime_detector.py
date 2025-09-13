@@ -14,10 +14,10 @@ from typing import Optional, Callable, Dict, Any, List
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..models.enhanced_yolov11_detector import EnhancedYOLOv11Detector
-from ..models.yolo_factory import YOLOFactory
-from ..core.types import DetectionResult, ProcessingResult, TaskType, Status
-from ..utils.logging_manager import LoggingManager
+from models.enhanced_yolov11_detector import EnhancedYOLOv11Detector
+from models.yolo_factory import YOLOFactory
+from core.types import DetectionResult, ProcessingResult, TaskType, Status
+from utils.logger import get_logger
 
 
 @dataclass
@@ -68,7 +68,7 @@ class EnhancedRealtimeDetector:
             config: 检测配置
         """
         self.config = config or RealtimeConfig()
-        self.logger = LoggingManager().get_logger("EnhancedRealtimeDetector")
+        self.logger = get_logger("EnhancedRealtimeDetector")
         
         # 初始化检测器
         self._init_detector()

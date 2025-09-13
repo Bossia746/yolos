@@ -34,8 +34,8 @@ class TestBasicIntegration(BaseTest):
         # Check essential files
         assert (project_root / "requirements.txt").exists()
         assert (project_root / "README.md").exists()
-        assert (project_root / "pytest.ini").exists()
-        assert (project_root / "conftest.py").exists()
+        assert (project_root / "tests" / "pytest.ini").exists()
+        assert (project_root / "tests" / "conftest.py").exists()
     
     def test_core_modules_import(self):
         """Test that core modules can be imported."""
@@ -72,9 +72,9 @@ class TestBasicIntegration(BaseTest):
             
             # Test default configuration
             config = YOLOSConfig()
-            assert hasattr(config, 'camera')
-            assert hasattr(config, 'detection')
-            assert hasattr(config, 'recognition')
+            assert hasattr(config, 'camera_config')
+            assert hasattr(config, 'detection_config')
+            assert hasattr(config, 'recognition_config')
             
         except ImportError:
             pytest.skip("Configuration module not available")
@@ -112,7 +112,7 @@ class TestBasicIntegration(BaseTest):
             
             # Test plugin manager initialization
             plugin_manager = PluginManager()
-            assert hasattr(plugin_manager, 'plugins')
+            assert hasattr(plugin_manager, '_plugins')
             
         except ImportError:
             pytest.skip("Plugin system not available")

@@ -1,462 +1,640 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-YOLOS Performance Monitor
-性能监控管理器 - 监控系统性能并提供优化建议
+YOLOS统一性能监控系统
+
+提供全面的性能监控和资源管理功能，包括：
+- CPU、内存、GPU使用率监控
+- 模型推理时间统计
+- 性能预警机制
+- 资源优化建议
+
+Author: YOLOS Team
+Version: 2.0.0
 """
 
-import psutil
 import time
+import psutil
 import threading
 import logging
-from typing import Dict, List, Optional, Any, Callable
-from collections import deque, defaultdict
 from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Callable, Any
+from dataclasses import dataclass, field
+from collections import defaultdict, deque
 import json
-import yaml
-from pathlib import Path
-import gc
-import tracemalloc
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
+import statistics
+from contextlib import contextmanager
+
+try:
+    import GPUtil
+    GPU_AVAILABLE = True
+except ImportError:
+    GPU_AVAILABLE = False
+
+from .exceptions import (
+    ErrorCode, SystemException, create_exception,
+    exception_handler
+)
+
+
+@dataclass
+class PerformanceMetrics:
+    """性能指标数据类"""
+    timestamp: datetime
+    cpu_percent: float
+    memory_percent: float
+    memory_used_mb: float
+    memory_available_mb: float
+    gpu_percent: Optional[float] = None
+    gpu_memory_percent: Optional[float] = None
+    gpu_memory_used_mb: Optional[float] = None
+    gpu_temperature: Optional[float] = None
+    disk_io_read_mb: float = 0.0
+    disk_io_write_mb: float = 0.0
+    network_sent_mb: float = 0.0
+    network_recv_mb: float = 0.0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典格式"""
+        return {
+            'timestamp': self.timestamp.isoformat(),
+            'cpu_percent': self.cpu_percent,
+            'memory_percent': self.memory_percent,
+            'memory_used_mb': self.memory_used_mb,
+            'memory_available_mb': self.memory_available_mb,
+            'gpu_percent': self.gpu_percent,
+            'gpu_memory_percent': self.gpu_memory_percent,
+            'gpu_memory_used_mb': self.gpu_memory_used_mb,
+            'gpu_temperature': self.gpu_temperature,
+            'disk_io_read_mb': self.disk_io_read_mb,
+            'disk_io_write_mb': self.disk_io_write_mb,
+            'network_sent_mb': self.network_sent_mb,
+            'network_recv_mb': self.network_recv_mb
+        }
+
+
+@dataclass
+class InferenceMetrics:
+    """推理性能指标"""
+    model_name: str
+    inference_time_ms: float
+    preprocessing_time_ms: float
+    postprocessing_time_ms: float
+    total_time_ms: float
+    input_size: tuple
+    batch_size: int
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典格式"""
+        return {
+            'model_name': self.model_name,
+            'inference_time_ms': self.inference_time_ms,
+            'preprocessing_time_ms': self.preprocessing_time_ms,
+            'postprocessing_time_ms': self.postprocessing_time_ms,
+            'total_time_ms': self.total_time_ms,
+            'input_size': self.input_size,
+            'batch_size': self.batch_size,
+            'timestamp': self.timestamp.isoformat()
+        }
+
+
+@dataclass
+class PerformanceAlert:
+    """性能预警"""
+    alert_type: str
+    message: str
+    severity: str  # 'low', 'medium', 'high', 'critical'
+    metric_name: str
+    current_value: float
+    threshold_value: float
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典格式"""
+        return {
+            'alert_type': self.alert_type,
+            'message': self.message,
+            'severity': self.severity,
+            'metric_name': self.metric_name,
+            'current_value': self.current_value,
+            'threshold_value': self.threshold_value,
+            'timestamp': self.timestamp.isoformat()
+        }
 
 
 class PerformanceMonitor:
-    """性能监控管理器"""
+    """统一性能监控器"""
     
-    def __init__(self, config_path: Optional[str] = None):
-        self.logger = logging.getLogger(__name__)
-        self.config = self._load_config(config_path)
+    def __init__(
+        self,
+        monitoring_interval: float = 1.0,
+        history_size: int = 1000,
+        enable_gpu_monitoring: bool = True,
+        logger_name: str = "yolos.performance"
+    ):
+        self.monitoring_interval = monitoring_interval
+        self.history_size = history_size
+        self.enable_gpu_monitoring = enable_gpu_monitoring and GPU_AVAILABLE
+        self.logger = logging.getLogger(logger_name)
         
-        # 性能指标存储
-        self.metrics = {
-            'cpu': deque(maxlen=1000),
-            'memory': deque(maxlen=1000),
-            'disk': deque(maxlen=1000),
-            'network': deque(maxlen=1000),
-            'gpu': deque(maxlen=1000),
-            'inference_time': deque(maxlen=1000),
-            'frame_rate': deque(maxlen=1000)
+        # 性能数据存储
+        self.metrics_history: deque = deque(maxlen=history_size)
+        self.inference_history: Dict[str, deque] = defaultdict(
+            lambda: deque(maxlen=history_size)
+        )
+        
+        # 预警配置
+        self.alert_thresholds = {
+            'cpu_percent': {'high': 80.0, 'critical': 95.0},
+            'memory_percent': {'high': 80.0, 'critical': 95.0},
+            'gpu_percent': {'high': 85.0, 'critical': 98.0},
+            'gpu_memory_percent': {'high': 85.0, 'critical': 95.0},
+            'gpu_temperature': {'high': 80.0, 'critical': 90.0}
         }
         
-        # 性能阈值
-        self.thresholds = self.config.get('thresholds', {
-            'cpu_usage': 80.0,
-            'memory_usage': 85.0,
-            'disk_usage': 90.0,
-            'inference_time': 100.0,  # ms
-            'frame_rate_min': 15.0
-        })
+        # 预警回调函数
+        self.alert_callbacks: List[Callable[[PerformanceAlert], None]] = []
         
-        # 监控状态
-        self.monitoring_active = False
-        self.monitor_thread = None
-        self.alerts = deque(maxlen=100)
+        # 监控控制
+        self._monitoring = False
+        self._monitor_thread: Optional[threading.Thread] = None
+        self._lock = threading.Lock()
         
-        # 性能优化器
-        self.optimizers = {
-            'memory': self._optimize_memory,
-            'cpu': self._optimize_cpu,
-            'inference': self._optimize_inference
-        }
-        
-        # 启动内存跟踪
-        if self.config.get('memory_profiling', {}).get('enabled', False):
-            tracemalloc.start()
-        
-        self.logger.info("Performance Monitor initialized")
+        # 初始化系统信息
+        self._init_system_info()
     
-    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
-        """加载性能监控配置"""
-        if config_path is None:
-            config_path = Path(__file__).parent.parent.parent / "config" / "performance_config.yaml"
-        
+    def _init_system_info(self):
+        """初始化系统信息"""
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
+            self.cpu_count = psutil.cpu_count()
+            self.memory_total = psutil.virtual_memory().total / (1024**3)  # GB
+            
+            if self.enable_gpu_monitoring:
+                try:
+                    gpus = GPUtil.getGPUs()
+                    self.gpu_count = len(gpus)
+                    if gpus:
+                        self.gpu_info = {
+                            'name': gpus[0].name,
+                            'memory_total': gpus[0].memoryTotal
+                        }
+                    else:
+                        self.gpu_count = 0
+                        self.gpu_info = None
+                except Exception as e:
+                    self.logger.warning(f"GPU信息获取失败: {e}")
+                    self.enable_gpu_monitoring = False
+                    self.gpu_count = 0
+                    self.gpu_info = None
+            else:
+                self.gpu_count = 0
+                self.gpu_info = None
+                
         except Exception as e:
-            self.logger.warning(f"Failed to load performance config: {e}")
-            return self._get_default_config()
+            raise create_exception(
+                ErrorCode.SYSTEM_ERROR,
+                f"系统信息初始化失败: {e}",
+                {'component': 'PerformanceMonitor'}
+            )
     
-    def _get_default_config(self) -> Dict[str, Any]:
-        """获取默认配置"""
-        return {
-            'monitoring': {
-                'enabled': True,
-                'interval_seconds': 5,
-                'detailed_logging': False
-            },
-            'thresholds': {
-                'cpu_usage': 80.0,
-                'memory_usage': 85.0,
-                'disk_usage': 90.0,
-                'inference_time': 100.0,
-                'frame_rate_min': 15.0
-            },
-            'optimization': {
-                'auto_optimize': True,
-                'memory_cleanup_interval': 300,
-                'gc_threshold_adjustment': True
-            },
-            'memory_profiling': {
-                'enabled': False,
-                'snapshot_interval': 60
-            }
-        }
-    
+    @exception_handler(ErrorCode.SYSTEM_ERROR)
     def start_monitoring(self):
-        """启动性能监控"""
-        if self.monitoring_active:
+        """开始性能监控"""
+        if self._monitoring:
+            self.logger.warning("性能监控已在运行")
             return
         
-        self.monitoring_active = True
-        self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
-        self.monitor_thread.start()
-        
-        self.logger.info("Performance monitoring started")
+        self._monitoring = True
+        self._monitor_thread = threading.Thread(
+            target=self._monitoring_loop,
+            daemon=True
+        )
+        self._monitor_thread.start()
+        self.logger.info("性能监控已启动")
     
     def stop_monitoring(self):
         """停止性能监控"""
-        self.monitoring_active = False
-        if self.monitor_thread:
-            self.monitor_thread.join(timeout=5)
-        
-        self.logger.info("Performance monitoring stopped")
+        self._monitoring = False
+        if self._monitor_thread:
+            self._monitor_thread.join(timeout=5.0)
+        self.logger.info("性能监控已停止")
     
-    def _monitor_loop(self):
+    def _monitoring_loop(self):
         """监控循环"""
-        interval = self.config.get('monitoring', {}).get('interval_seconds', 5)
-        
-        while self.monitoring_active:
+        while self._monitoring:
             try:
-                self._collect_metrics()
-                self._check_thresholds()
+                metrics = self._collect_metrics()
                 
-                if self.config.get('optimization', {}).get('auto_optimize', True):
-                    self._auto_optimize()
+                with self._lock:
+                    self.metrics_history.append(metrics)
                 
-                time.sleep(interval)
+                # 检查预警
+                self._check_alerts(metrics)
+                
+                time.sleep(self.monitoring_interval)
+                
             except Exception as e:
-                self.logger.error(f"Error in monitoring loop: {e}")
-                time.sleep(interval)
+                self.logger.error(f"性能监控循环错误: {e}")
+                time.sleep(self.monitoring_interval)
     
-    def _collect_metrics(self):
+    @exception_handler(ErrorCode.SYSTEM_ERROR)
+    def _collect_metrics(self) -> PerformanceMetrics:
         """收集性能指标"""
-        timestamp = datetime.now()
-        
-        # CPU 使用率
-        cpu_percent = psutil.cpu_percent(interval=1)
-        self.metrics['cpu'].append({
-            'timestamp': timestamp,
-            'value': cpu_percent,
-            'per_core': psutil.cpu_percent(percpu=True)
-        })
-        
-        # 内存使用情况
+        # CPU和内存信息
+        cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        self.metrics['memory'].append({
-            'timestamp': timestamp,
-            'total': memory.total,
-            'available': memory.available,
-            'percent': memory.percent,
-            'used': memory.used
-        })
         
-        # 磁盘使用情况
-        disk = psutil.disk_usage('/')
-        self.metrics['disk'].append({
-            'timestamp': timestamp,
-            'total': disk.total,
-            'used': disk.used,
-            'free': disk.free,
-            'percent': (disk.used / disk.total) * 100
-        })
+        # 磁盘IO信息
+        disk_io = psutil.disk_io_counters()
+        disk_read_mb = disk_io.read_bytes / (1024**2) if disk_io else 0.0
+        disk_write_mb = disk_io.write_bytes / (1024**2) if disk_io else 0.0
         
-        # 网络统计
-        network = psutil.net_io_counters()
-        self.metrics['network'].append({
-            'timestamp': timestamp,
-            'bytes_sent': network.bytes_sent,
-            'bytes_recv': network.bytes_recv,
-            'packets_sent': network.packets_sent,
-            'packets_recv': network.packets_recv
-        })
+        # 网络IO信息
+        net_io = psutil.net_io_counters()
+        net_sent_mb = net_io.bytes_sent / (1024**2) if net_io else 0.0
+        net_recv_mb = net_io.bytes_recv / (1024**2) if net_io else 0.0
         
-        # GPU 使用情况（如果可用）
+        # GPU信息
+        gpu_percent = None
+        gpu_memory_percent = None
+        gpu_memory_used_mb = None
+        gpu_temperature = None
+        
+        if self.enable_gpu_monitoring:
+            try:
+                gpus = GPUtil.getGPUs()
+                if gpus:
+                    gpu = gpus[0]  # 使用第一个GPU
+                    gpu_percent = gpu.load * 100
+                    gpu_memory_percent = gpu.memoryUtil * 100
+                    gpu_memory_used_mb = gpu.memoryUsed
+                    gpu_temperature = gpu.temperature
+            except Exception as e:
+                self.logger.debug(f"GPU信息收集失败: {e}")
+        
+        return PerformanceMetrics(
+            timestamp=datetime.now(),
+            cpu_percent=cpu_percent,
+            memory_percent=memory.percent,
+            memory_used_mb=memory.used / (1024**2),
+            memory_available_mb=memory.available / (1024**2),
+            gpu_percent=gpu_percent,
+            gpu_memory_percent=gpu_memory_percent,
+            gpu_memory_used_mb=gpu_memory_used_mb,
+            gpu_temperature=gpu_temperature,
+            disk_io_read_mb=disk_read_mb,
+            disk_io_write_mb=disk_write_mb,
+            network_sent_mb=net_sent_mb,
+            network_recv_mb=net_recv_mb
+        )
+    
+    def _check_alerts(self, metrics: PerformanceMetrics):
+        """检查性能预警"""
+        alerts = []
+        
+        # 检查各项指标
+        for metric_name, thresholds in self.alert_thresholds.items():
+            value = getattr(metrics, metric_name, None)
+            if value is None:
+                continue
+            
+            severity = None
+            if value >= thresholds.get('critical', float('inf')):
+                severity = 'critical'
+            elif value >= thresholds.get('high', float('inf')):
+                severity = 'high'
+            
+            if severity:
+                alert = PerformanceAlert(
+                    alert_type='resource_usage',
+                    message=f"{metric_name}使用率过高: {value:.1f}%",
+                    severity=severity,
+                    metric_name=metric_name,
+                    current_value=value,
+                    threshold_value=thresholds[severity]
+                )
+                alerts.append(alert)
+        
+        # 触发预警回调
+        for alert in alerts:
+            for callback in self.alert_callbacks:
+                try:
+                    callback(alert)
+                except Exception as e:
+                    self.logger.error(f"预警回调执行失败: {e}")
+    
+    def add_alert_callback(self, callback: Callable[[PerformanceAlert], None]):
+        """添加预警回调函数"""
+        self.alert_callbacks.append(callback)
+    
+    def remove_alert_callback(self, callback: Callable[[PerformanceAlert], None]):
+        """移除预警回调函数"""
+        if callback in self.alert_callbacks:
+            self.alert_callbacks.remove(callback)
+    
+    @contextmanager
+    def measure_inference(
+        self,
+        model_name: str,
+        input_size: tuple,
+        batch_size: int = 1
+    ):
+        """推理性能测量上下文管理器"""
+        start_time = time.perf_counter()
+        preprocessing_time = 0.0
+        postprocessing_time = 0.0
+        
+        class InferenceTimer:
+            def __init__(self):
+                self.preprocessing_start = None
+                self.preprocessing_end = None
+                self.postprocessing_start = None
+                self.postprocessing_end = None
+            
+            def start_preprocessing(self):
+                self.preprocessing_start = time.perf_counter()
+            
+            def end_preprocessing(self):
+                if self.preprocessing_start:
+                    self.preprocessing_end = time.perf_counter()
+            
+            def start_postprocessing(self):
+                self.postprocessing_start = time.perf_counter()
+            
+            def end_postprocessing(self):
+                if self.postprocessing_start:
+                    self.postprocessing_end = time.perf_counter()
+        
+        timer = InferenceTimer()
+        
         try:
-            import GPUtil
-            gpus = GPUtil.getGPUs()
-            if gpus:
-                gpu = gpus[0]
-                self.metrics['gpu'].append({
-                    'timestamp': timestamp,
-                    'load': gpu.load * 100,
-                    'memory_used': gpu.memoryUsed,
-                    'memory_total': gpu.memoryTotal,
-                    'temperature': gpu.temperature
-                })
-        except ImportError:
-            pass
+            yield timer
+        finally:
+            end_time = time.perf_counter()
+            total_time_ms = (end_time - start_time) * 1000
+            
+            # 计算各阶段时间
+            if timer.preprocessing_start and timer.preprocessing_end:
+                preprocessing_time = (timer.preprocessing_end - timer.preprocessing_start) * 1000
+            
+            if timer.postprocessing_start and timer.postprocessing_end:
+                postprocessing_time = (timer.postprocessing_end - timer.postprocessing_start) * 1000
+            
+            inference_time_ms = total_time_ms - preprocessing_time - postprocessing_time
+            
+            # 记录推理指标
+            metrics = InferenceMetrics(
+                model_name=model_name,
+                inference_time_ms=inference_time_ms,
+                preprocessing_time_ms=preprocessing_time,
+                postprocessing_time_ms=postprocessing_time,
+                total_time_ms=total_time_ms,
+                input_size=input_size,
+                batch_size=batch_size
+            )
+            
+            with self._lock:
+                self.inference_history[model_name].append(metrics)
     
-    def _check_thresholds(self):
-        """检查性能阈值"""
-        if not self.metrics['cpu'] or not self.metrics['memory']:
-            return
-        
-        latest_cpu = self.metrics['cpu'][-1]['value']
-        latest_memory = self.metrics['memory'][-1]['percent']
-        
-        # 检查CPU阈值
-        if latest_cpu > self.thresholds['cpu_usage']:
-            self._create_alert('cpu_high', {
-                'current': latest_cpu,
-                'threshold': self.thresholds['cpu_usage']
-            })
-        
-        # 检查内存阈值
-        if latest_memory > self.thresholds['memory_usage']:
-            self._create_alert('memory_high', {
-                'current': latest_memory,
-                'threshold': self.thresholds['memory_usage']
-            })
+    def get_current_metrics(self) -> Optional[PerformanceMetrics]:
+        """获取当前性能指标"""
+        with self._lock:
+            return self.metrics_history[-1] if self.metrics_history else None
     
-    def _create_alert(self, alert_type: str, data: Dict[str, Any]):
-        """创建性能告警"""
-        alert = {
-            'timestamp': datetime.now(),
-            'type': alert_type,
-            'data': data,
-            'severity': self._get_alert_severity(alert_type, data)
+    def get_metrics_history(
+        self,
+        duration_minutes: Optional[int] = None
+    ) -> List[PerformanceMetrics]:
+        """获取性能指标历史"""
+        with self._lock:
+            if duration_minutes is None:
+                return list(self.metrics_history)
+            
+            cutoff_time = datetime.now() - timedelta(minutes=duration_minutes)
+            return [
+                m for m in self.metrics_history
+                if m.timestamp >= cutoff_time
+            ]
+    
+    def get_inference_statistics(
+        self,
+        model_name: str,
+        duration_minutes: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """获取推理性能统计"""
+        with self._lock:
+            history = self.inference_history.get(model_name, [])
+            
+            if duration_minutes is not None:
+                cutoff_time = datetime.now() - timedelta(minutes=duration_minutes)
+                history = [
+                    m for m in history
+                    if m.timestamp >= cutoff_time
+                ]
+            
+            if not history:
+                return {}
+            
+            # 计算统计信息
+            total_times = [m.total_time_ms for m in history]
+            inference_times = [m.inference_time_ms for m in history]
+            
+            return {
+                'model_name': model_name,
+                'sample_count': len(history),
+                'total_time': {
+                    'mean': statistics.mean(total_times),
+                    'median': statistics.median(total_times),
+                    'min': min(total_times),
+                    'max': max(total_times),
+                    'std': statistics.stdev(total_times) if len(total_times) > 1 else 0.0
+                },
+                'inference_time': {
+                    'mean': statistics.mean(inference_times),
+                    'median': statistics.median(inference_times),
+                    'min': min(inference_times),
+                    'max': max(inference_times),
+                    'std': statistics.stdev(inference_times) if len(inference_times) > 1 else 0.0
+                },
+                'throughput_fps': len(history) / (sum(total_times) / 1000) if total_times else 0.0
+            }
+    
+    def get_system_info(self) -> Dict[str, Any]:
+        """获取系统信息"""
+        return {
+            'cpu_count': self.cpu_count,
+            'memory_total_gb': self.memory_total,
+            'gpu_count': self.gpu_count,
+            'gpu_info': self.gpu_info,
+            'gpu_monitoring_enabled': self.enable_gpu_monitoring
         }
+    
+    def generate_performance_report(self) -> Dict[str, Any]:
+        """生成性能报告"""
+        current_metrics = self.get_current_metrics()
+        recent_metrics = self.get_metrics_history(duration_minutes=60)
         
-        self.alerts.append(alert)
-        self.logger.warning(f"Performance alert: {alert_type} - {data}")
-    
-    def _get_alert_severity(self, alert_type: str, data: Dict[str, Any]) -> str:
-        """获取告警严重程度"""
-        if alert_type in ['cpu_high', 'memory_high']:
-            current = data.get('current', 0)
-            threshold = data.get('threshold', 100)
-            
-            if current > threshold * 1.2:  # 超过阈值20%
-                return 'critical'
-            elif current > threshold * 1.1:  # 超过阈值10%
-                return 'high'
-            else:
-                return 'medium'
-        
-        return 'low'
-    
-    def _auto_optimize(self):
-        """自动优化"""
-        # 检查是否需要内存清理
-        if self.metrics['memory']:
-            latest_memory = self.metrics['memory'][-1]['percent']
-            if latest_memory > 75:  # 内存使用超过75%
-                self._optimize_memory()
-    
-    def _optimize_memory(self):
-        """内存优化"""
-        try:
-            # 强制垃圾回收
-            collected = gc.collect()
-            
-            # 调整GC阈值
-            if self.config.get('optimization', {}).get('gc_threshold_adjustment', True):
-                gc.set_threshold(700, 10, 10)
-            
-            self.logger.info(f"Memory optimization completed, collected {collected} objects")
-        except Exception as e:
-            self.logger.error(f"Memory optimization failed: {e}")
-    
-    def _optimize_cpu(self):
-        """CPU优化"""
-        try:
-            # 调整进程优先级
-            process = psutil.Process()
-            if process.nice() > 0:
-                process.nice(0)  # 提高优先级
-            
-            self.logger.info("CPU optimization completed")
-        except Exception as e:
-            self.logger.error(f"CPU optimization failed: {e}")
-    
-    def _optimize_inference(self):
-        """推理优化"""
-        try:
-            # 这里可以添加模型推理优化逻辑
-            # 例如：批处理优化、模型量化等
-            self.logger.info("Inference optimization completed")
-        except Exception as e:
-            self.logger.error(f"Inference optimization failed: {e}")
-    
-    def get_performance_summary(self) -> Dict[str, Any]:
-        """获取性能摘要"""
-        summary = {
-            'timestamp': datetime.now(),
-            'status': 'healthy',
-            'metrics': {},
-            'alerts': len(self.alerts),
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'system_info': self.get_system_info(),
+            'current_metrics': current_metrics.to_dict() if current_metrics else None,
+            'recent_performance': {},
+            'inference_statistics': {},
             'recommendations': []
         }
         
-        # 计算各项指标的平均值
-        for metric_name, metric_data in self.metrics.items():
-            if not metric_data:
-                continue
+        # 计算最近性能统计
+        if recent_metrics:
+            cpu_values = [m.cpu_percent for m in recent_metrics]
+            memory_values = [m.memory_percent for m in recent_metrics]
             
-            if metric_name == 'cpu':
-                values = [m['value'] for m in metric_data[-10:]]  # 最近10个值
-                summary['metrics']['cpu_avg'] = sum(values) / len(values) if values else 0
-            elif metric_name == 'memory':
-                values = [m['percent'] for m in metric_data[-10:]]
-                summary['metrics']['memory_avg'] = sum(values) / len(values) if values else 0
-        
-        # 生成建议
-        if summary['metrics'].get('cpu_avg', 0) > 70:
-            summary['recommendations'].append('Consider reducing CPU-intensive operations')
-        
-        if summary['metrics'].get('memory_avg', 0) > 80:
-            summary['recommendations'].append('Consider memory optimization or increasing available memory')
-        
-        # 确定整体状态
-        if len(self.alerts) > 5:
-            summary['status'] = 'warning'
-        
-        critical_alerts = [a for a in self.alerts if a.get('severity') == 'critical']
-        if critical_alerts:
-            summary['status'] = 'critical'
-        
-        return summary
-    
-    def record_inference_time(self, inference_time_ms: float):
-        """记录推理时间"""
-        self.metrics['inference_time'].append({
-            'timestamp': datetime.now(),
-            'value': inference_time_ms
-        })
-        
-        # 检查推理时间阈值
-        if inference_time_ms > self.thresholds['inference_time']:
-            self._create_alert('inference_slow', {
-                'current': inference_time_ms,
-                'threshold': self.thresholds['inference_time']
-            })
-    
-    def record_frame_rate(self, fps: float):
-        """记录帧率"""
-        self.metrics['frame_rate'].append({
-            'timestamp': datetime.now(),
-            'value': fps
-        })
-        
-        # 检查帧率阈值
-        if fps < self.thresholds['frame_rate_min']:
-            self._create_alert('frame_rate_low', {
-                'current': fps,
-                'threshold': self.thresholds['frame_rate_min']
-            })
-    
-    def get_memory_profile(self) -> Optional[Dict[str, Any]]:
-        """获取内存分析"""
-        if not tracemalloc.is_tracing():
-            return None
-        
-        try:
-            snapshot = tracemalloc.take_snapshot()
-            top_stats = snapshot.statistics('lineno')
-            
-            profile = {
-                'timestamp': datetime.now(),
-                'total_memory': sum(stat.size for stat in top_stats),
-                'top_allocations': []
+            report['recent_performance'] = {
+                'cpu_usage': {
+                    'mean': statistics.mean(cpu_values),
+                    'max': max(cpu_values),
+                    'min': min(cpu_values)
+                },
+                'memory_usage': {
+                    'mean': statistics.mean(memory_values),
+                    'max': max(memory_values),
+                    'min': min(memory_values)
+                }
             }
-            
-            for stat in top_stats[:10]:  # 前10个最大内存分配
-                profile['top_allocations'].append({
-                    'filename': stat.traceback.format()[0],
-                    'size_mb': stat.size / 1024 / 1024,
-                    'count': stat.count
-                })
-            
-            return profile
-        except Exception as e:
-            self.logger.error(f"Failed to get memory profile: {e}")
-            return None
+        
+        # 推理统计
+        for model_name in self.inference_history:
+            stats = self.get_inference_statistics(model_name, duration_minutes=60)
+            if stats:
+                report['inference_statistics'][model_name] = stats
+        
+        # 生成优化建议
+        report['recommendations'] = self._generate_recommendations(current_metrics, recent_metrics)
+        
+        return report
     
-    def export_metrics(self, filepath: str, format: str = 'json'):
-        """导出性能指标"""
-        try:
-            data = {
-                'export_time': datetime.now().isoformat(),
-                'metrics': {},
-                'alerts': list(self.alerts),
-                'summary': self.get_performance_summary()
-            }
-            
-            # 转换metrics为可序列化格式
-            for metric_name, metric_data in self.metrics.items():
-                data['metrics'][metric_name] = [
-                    {k: v.isoformat() if isinstance(v, datetime) else v 
-                     for k, v in item.items()}
-                    for item in metric_data
-                ]
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
-                if format.lower() == 'json':
-                    json.dump(data, f, indent=2, ensure_ascii=False)
-                elif format.lower() == 'yaml':
-                    yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
-            
-            self.logger.info(f"Metrics exported to {filepath}")
-        except Exception as e:
-            self.logger.error(f"Failed to export metrics: {e}")
+    def _generate_recommendations(
+        self,
+        current_metrics: Optional[PerformanceMetrics],
+        recent_metrics: List[PerformanceMetrics]
+    ) -> List[str]:
+        """生成性能优化建议"""
+        recommendations = []
+        
+        if not current_metrics:
+            return recommendations
+        
+        # CPU使用率建议
+        if current_metrics.cpu_percent > 80:
+            recommendations.append("CPU使用率过高，建议优化算法或增加并行处理")
+        
+        # 内存使用建议
+        if current_metrics.memory_percent > 80:
+            recommendations.append("内存使用率过高，建议优化内存管理或增加内存")
+        
+        # GPU建议
+        if current_metrics.gpu_percent and current_metrics.gpu_percent > 85:
+            recommendations.append("GPU使用率过高，建议优化模型或使用模型量化")
+        
+        if current_metrics.gpu_temperature and current_metrics.gpu_temperature > 80:
+            recommendations.append("GPU温度过高，建议检查散热或降低负载")
+        
+        # 推理性能建议
+        for model_name, stats in [(name, self.get_inference_statistics(name, 60)) 
+                                  for name in self.inference_history]:
+            if stats and stats.get('total_time', {}).get('mean', 0) > 100:
+                recommendations.append(f"模型{model_name}推理时间过长，建议优化模型或使用更快的硬件")
+        
+        return recommendations
 
 
-# 全局实例
-performance_monitor = PerformanceMonitor()
+# 全局性能监控器实例
+global_performance_monitor = PerformanceMonitor()
+global_monitor = PerformanceMonitor()
 
-# 装饰器
-def monitor_performance(metric_name: str = 'execution_time'):
+
+def get_performance_monitor() -> PerformanceMonitor:
+    """获取全局性能监控器"""
+    return global_performance_monitor
+
+
+def get_performance_monitor() -> PerformanceMonitor:
+    """获取全局性能监控器实例"""
+    return global_monitor
+
+
+# 装饰器：自动性能监控
+def monitor_performance(model_name: str, input_size: tuple = None, batch_size: int = 1):
     """性能监控装饰器"""
-    def decorator(func: Callable) -> Callable:
+    def decorator(func):
         def wrapper(*args, **kwargs):
-            start_time = time.time()
-            try:
+            # 尝试从参数中推断输入尺寸
+            actual_input_size = input_size
+            if actual_input_size is None and args:
+                # 假设第一个参数是输入数据
+                try:
+                    if hasattr(args[0], 'shape'):
+                        actual_input_size = args[0].shape
+                    elif isinstance(args[0], (list, tuple)) and len(args[0]) > 0:
+                        if hasattr(args[0][0], 'shape'):
+                            actual_input_size = args[0][0].shape
+                except:
+                    actual_input_size = (0, 0)
+            
+            actual_input_size = actual_input_size or (0, 0)
+            
+            with global_performance_monitor.measure_inference(
+                model_name, actual_input_size, batch_size
+            ) as timer:
+                timer.start_preprocessing()
+                # 这里可以添加预处理逻辑
+                timer.end_preprocessing()
+                
                 result = func(*args, **kwargs)
+                
+                timer.start_postprocessing()
+                # 这里可以添加后处理逻辑
+                timer.end_postprocessing()
+                
                 return result
-            finally:
-                execution_time = (time.time() - start_time) * 1000  # ms
-                if metric_name == 'inference_time':
-                    performance_monitor.record_inference_time(execution_time)
-                else:
-                    performance_monitor.metrics[metric_name].append({
-                        'timestamp': datetime.now(),
-                        'function': func.__name__,
-                        'execution_time': execution_time
-                    })
+        
         return wrapper
     return decorator
 
 
-# 异步版本的性能监控装饰器
-def async_monitor_performance(metric_name: str = 'execution_time'):
-    """异步性能监控装饰器"""
-    def decorator(func: Callable) -> Callable:
-        async def wrapper(*args, **kwargs):
-            start_time = time.time()
-            try:
-                result = await func(*args, **kwargs)
-                return result
-            finally:
-                execution_time = (time.time() - start_time) * 1000  # ms
-                if metric_name == 'inference_time':
-                    performance_monitor.record_inference_time(execution_time)
-                else:
-                    performance_monitor.metrics[metric_name].append({
-                        'timestamp': datetime.now(),
-                        'function': func.__name__,
-                        'execution_time': execution_time
-                    })
-        return wrapper
-    return decorator
+if __name__ == "__main__":
+    # 测试性能监控系统
+    monitor = PerformanceMonitor(monitoring_interval=0.5)
+    
+    # 添加预警回调
+    def alert_callback(alert: PerformanceAlert):
+        print(f"性能预警: {alert.message} (严重程度: {alert.severity})")
+    
+    monitor.add_alert_callback(alert_callback)
+    
+    # 启动监控
+    monitor.start_monitoring()
+    
+    try:
+        # 模拟推理测试
+        with monitor.measure_inference("test_model", (640, 480), 1) as timer:
+            timer.start_preprocessing()
+            time.sleep(0.01)  # 模拟预处理
+            timer.end_preprocessing()
+            
+            time.sleep(0.05)  # 模拟推理
+            
+            timer.start_postprocessing()
+            time.sleep(0.01)  # 模拟后处理
+            timer.end_postprocessing()
+        
+        # 等待一段时间收集数据
+        time.sleep(3)
+        
+        # 生成报告
+        report = monitor.generate_performance_report()
+        print("性能报告:")
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        
+    finally:
+        monitor.stop_monitoring()

@@ -135,6 +135,15 @@ config/secrets.yaml
 
 # Logs
 *.log
+**/*.log
+src/*/logs/
+src/core/logs/
+src/utils/logs/
+src/gui/*.log
+src/safety/logs/
+src/ui/logs/
+tests/tests/logs/
+reports/*.log
 logs/
 log/
 
@@ -157,6 +166,102 @@ temp/
 models/*.pt
 models/*.pth
 models/*.onnx
+models/*.trt
+models/*.engine
+models/*.bin
+models/*.safetensors
+models/*.h5
+models/*.pb
+models/*.tflite
+models/*.mlmodel
+models/*.coreml
+models/*.torchscript
+models/*.jit
+*.pt
+*.pth
+*.onnx
+*.trt
+*.engine
+*.bin
+*.safetensors
+*.h5
+*.pb
+*.tflite
+*.mlmodel
+*.coreml
+*.torchscript
+*.jit
+
+# Compressed files and archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+*.Z
+*.lz
+*.lzma
+*.cab
+*.iso
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.msi
+*.exe
+*.app
+
+# Large data files
+*.parquet
+*.feather
+*.hdf5
+*.h5
+*.mat
+*.npz
+*.npy
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+*.ogv
+!test_videos/test_video.mp4
+!examples/**/*.mp4
+!docs/**/*.mp4
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+*.m4a
+
+# Large binary files
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+*.o
+*.obj
 
 # Data files
 data/
@@ -174,7 +279,105 @@ datasets/
 *.gif
 *.bmp
 *.tiff
+*.webp
+*.svg
+*.ico
+*.tga
+*.psd
+*.ai
+*.eps
+*.raw
+*.cr2
+*.nef
+*.arw
+*.dng
 !examples/**/*.jpg
+!examples/**/*.jpeg
 !examples/**/*.png
+!examples/**/*.gif
+!examples/**/*.webp
+!examples/**/*.svg
 !docs/**/*.jpg
+!docs/**/*.jpeg
 !docs/**/*.png
+!docs/**/*.gif
+!docs/**/*.webp
+!docs/**/*.svg
+!src/**/*.svg
+!web/**/*.svg
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*~
+
+# Large text files and dumps
+*.dump
+*.sql
+*.backup
+*.bak
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Docker volumes and data
+docker-data/
+volumes/
+
+# Deployment artifacts
+deployment/logs/
+deployment/backups/
+deployment/snapshots/
+*.tar.gz
+*.tgz
+
+# Large configuration or cache files
+*.cache
+cache/
+.cache/
+*.index
+*.idx
+
+# Jupyter notebook outputs
+*.ipynb
+.ipynb_checkpoints/
+
+# Large resource files
+resource/**/*.zip
+resource/**/*.rar
+resource/**/*.7z
+resource/**/*.tar.gz
+
+# Calibration and training data
+calibration_data/**/*.jpg
+calibration_data/**/*.png
+calibration_data/**/*.mp4
+training_data/
+validation_data/
+test_data/
+
+# Generated files
+generated/
+output/
+results/
+build/
+dist/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Files larger than 100MB (Git LFS should be used instead)
+# Note: This is a reminder comment, actual large files should be tracked with Git LFS

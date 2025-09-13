@@ -20,7 +20,7 @@ except ImportError:
     print("警告: ultralytics未安装，请运行: pip install ultralytics")
 
 from ..core.types import DetectionResult, create_detection_result, ObjectType
-from ..utils.logging_manager import LoggingManager
+from ..utils.logger import get_logger
 from .base_detector_interface import BaseDetectorInterface
 
 
@@ -42,7 +42,10 @@ class YOLOv11Detector(BaseDetectorInterface):
                  half_precision: bool = True,
                  tensorrt_optimize: bool = True,
                  confidence_threshold: float = 0.25,
-                 iou_threshold: float = 0.45):
+                 iou_threshold: float = 0.45,
+                 c2psa_config: Optional[Dict] = None,
+                 c3k2_config: Optional[Dict] = None,
+                 dynamic_batching: bool = True):
         """
         初始化YOLOv11检测器
         
@@ -54,7 +57,7 @@ class YOLOv11Detector(BaseDetectorInterface):
             confidence_threshold: 置信度阈值
             iou_threshold: NMS IoU阈值
         """
-        self.logger = LoggingManager().get_logger("YOLOv11Detector")
+        self.logger = get_logger("YOLOv11Detector")
         
         # 配置参数
         self.model_size = model_size
@@ -62,6 +65,20 @@ class YOLOv11Detector(BaseDetectorInterface):
         self.tensorrt_optimize = tensorrt_optimize
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
+        self.dynamic_batching = dynamic_batching
+        
+        # YOLOv11特定配置
+        self.c2psa_config = c2psa_config or {
+            'enabled': True,
+            'attention_type': 'pyramid_slice',
+            'multi_scale': True
+        }
+        self.c3k2_config = c3k2_config or {
+            'enabled': True,
+            'parallel_conv': True,
+            'channel_separation': True,
+            'kernel_sizes': [3, 5, 7]
+        }
         
         # 设备配置
         self.device = self._setup_device(device)

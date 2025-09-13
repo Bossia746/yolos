@@ -17,6 +17,7 @@ import logging
 import json
 import requests
 from tqdm import tqdm
+from .enhanced_mish_activation import EnhancedMish, MishVariants
 
 logger = logging.getLogger(__name__)
 
@@ -244,10 +245,10 @@ class PretrainedModelLoader:
             classifier = nn.Sequential(
                 nn.Dropout(0.5),
                 nn.Linear(feature_dim, 512),
-                nn.ReLU(),
+                MishVariants.standard_mish(),
                 nn.Dropout(0.3),
                 nn.Linear(512, 256),
-                nn.ReLU(),
+                MishVariants.standard_mish(),
                 nn.Dropout(0.2),
                 nn.Linear(256, num_action_classes)
             )

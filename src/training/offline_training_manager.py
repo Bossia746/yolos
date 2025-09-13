@@ -17,6 +17,7 @@ import torch
 import torch.nn as nn
 from dataclasses import dataclass
 from datetime import datetime
+from ..models.enhanced_mish_activation import EnhancedMish, MishVariants
 
 logger = logging.getLogger(__name__)
 
@@ -382,26 +383,26 @@ class OfflineTrainingManager:
             model = nn.Sequential(
                 # 特征提取层
                 nn.Conv2d(3, 32, 3, padding=1),
-                nn.ReLU(),
+                MishVariants.adaptive_mish(learnable=True),
                 nn.MaxPool2d(2),
                 
                 nn.Conv2d(32, 64, 3, padding=1),
-                nn.ReLU(),
+                MishVariants.adaptive_mish(learnable=True),
                 nn.MaxPool2d(2),
                 
                 nn.Conv2d(64, 128, 3, padding=1),
-                nn.ReLU(),
+                MishVariants.standard_mish(),
                 nn.MaxPool2d(2),
                 
                 nn.Conv2d(128, 256, 3, padding=1),
-                nn.ReLU(),
+                MishVariants.standard_mish(),
                 nn.AdaptiveAvgPool2d((1, 1)),
                 
                 # 分类层
                 nn.Flatten(),
                 nn.Dropout(0.5),
                 nn.Linear(256, 128),
-                nn.ReLU(),
+                MishVariants.adaptive_mish(learnable=True),
                 nn.Dropout(0.3),
                 nn.Linear(128, num_classes)
             )

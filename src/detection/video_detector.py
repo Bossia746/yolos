@@ -10,6 +10,10 @@ import json
 import time
 
 from ..models.yolo_factory import YOLOFactory
+from .feature_aggregation import FeatureAggregator, AggregationConfig, PlatformType
+from .temporal_aggregator import TemporalAggregator, TemporalConfig, DetectionResult, AggregationStrategy
+from ..tracking.tracking_integration import TrackingIntegration, IntegratedTrackingConfig, TrackingMode
+from ..tracking.multi_object_tracker import TrackingConfig, TrackingStrategy
 
 
 class VideoDetector:
@@ -18,7 +22,11 @@ class VideoDetector:
     def __init__(self, 
                  model_type: str = 'yolov8',
                  model_path: Optional[str] = None,
-                 device: str = 'auto'):
+                 device: str = 'auto',
+                 enable_aggregation: bool = True,
+                 platform_type: PlatformType = PlatformType.DESKTOP,
+                 enable_tracking: bool = True,
+                 tracking_config: Optional[IntegratedTrackingConfig] = None):
         """
         初始化视频检测器
         
@@ -26,9 +34,43 @@ class VideoDetector:
             model_type: 模型类型
             model_path: 模型路径
             device: 设备类型
+            enable_aggregation: 是否启用特征聚合
+            platform_type: 平台类型
         """
         self.model = YOLOFactory.create_model(model_type, model_path, device)
         self.progress_callback: Optional[Callable] = None
+        
+        # 特征聚合器
+        self.enable_aggregation = enable_aggregation
+        if enable_aggregation:
+            agg_config = AggregationConfig(platform_type=platform_type)
+            self.feature_aggregator = FeatureAggregator(agg_config)
+            
+            # 时序聚合器
+            temporal_config = TemporalConfig(
+                buffer_size=3 if platform_type in [PlatformType.RASPBERRY_PI, PlatformType.ESP32] else 5,
+                strategy=AggregationStrategy.ADAPTIVE,
+                enable_tracking=True
+            )
+            self.temporal_aggregator = TemporalAggregator(temporal_config)
+        else:
+            self.feature_aggregator = None
+            self.temporal_aggregator = None
+        
+        # 跟踪功能
+        self.enable_tracking = enable_tracking
+        self.tracking_integration = None
+        if enable_tracking:
+            config = tracking_config or IntegratedTrackingConfig(
+                mode=TrackingMode.ENHANCED,
+                tracking_config=TrackingConfig(
+                    strategy=TrackingStrategy.HYBRID,
+                    max_missing_frames=15  # 视频检测可以容忍更多丢失帧
+                ),
+                aggregation_config=agg_config if enable_aggregation else None,
+                temporal_config=temporal_config if enable_aggregation else None
+            )
+            self.tracking_integration = TrackingIntegration(config)
     
     def set_progress_callback(self, callback: Callable):
         """设置进度回调函数"""
@@ -107,6 +149,24 @@ class VideoDetector:
                     # 执行检测
                     results = self.model.predict(frame, **kwargs)
                     frame_results = results
+                    
+                    # 应用聚合和跟踪策略
+                    if self.tracking_integration:
+                        # 转换检测结果格式
+                        detection_results = self._convert_to_detection_results(results, frame_idx)
+                        # 跟踪集成器会自动处理特征聚合和时序聚合
+                        tracked_results = self.tracking_integration.process_detections(detection_results, frame)
+                        results = self._convert_from_detection_results(tracked_results)
+                    elif self.enable_aggregation and self.temporal_aggregator:
+                        # 传统聚合方式（向后兼容）
+                        # 转换检测结果格式
+                        detection_results = self._convert_to_detection_results(results, frame_idx)
+                        
+                        # 应用时序聚合
+                        aggregated_results = self.temporal_aggregator.add_detections(detection_results, frame)
+                        
+                        # 转换回原格式
+                        results = self._convert_from_detection_results(aggregated_results)
                     
                     # 绘制结果
                     annotated_frame = self.model.draw_results(frame, results)
@@ -269,6 +329,54 @@ class VideoDetector:
         
         print(f"检测结果已保存到: {json_path}")
     
+    def _convert_to_detection_results(self, results, frame_id: int) -> List[DetectionResult]:
+        """转换检测结果为DetectionResult格式"""
+        detection_results = []
+        
+        # 处理YOLO结果格式
+        for result in results:
+            if isinstance(result, dict):
+                detection_results.append(DetectionResult(
+                    bbox=tuple(result.get('bbox', [0, 0, 0, 0])),
+                    confidence=result.get('confidence', 0.0),
+                    class_id=result.get('class_id', 0),
+                    class_name=result.get('class_name', 'unknown'),
+                    timestamp=time.time(),
+                    frame_id=frame_id
+                ))
+        
+        return detection_results
+    
+    def _convert_from_detection_results(self, detection_results: List[DetectionResult]):
+        """从DetectionResult格式转换回原格式"""
+        results = []
+        for det in detection_results:
+            results.append({
+                'bbox': det.bbox,
+                'confidence': det.confidence,
+                'class_id': det.class_id,
+                'class_name': det.class_name
+            })
+        return results
+    
+    def get_aggregation_stats(self) -> Dict[str, Any]:
+        """获取聚合统计信息"""
+        stats = {}
+        if self.feature_aggregator:
+            stats['feature_aggregation'] = self.feature_aggregator.get_statistics()
+        if self.temporal_aggregator:
+            stats['temporal_aggregation'] = self.temporal_aggregator.get_statistics()
+        return stats
+    
     def get_model_info(self) -> Dict[str, Any]:
         """获取模型信息"""
-        return self.model.get_model_info()
+        info = self.model.get_model_info()
+        if self.enable_aggregation:
+            info['aggregation_enabled'] = True
+            info['aggregation_stats'] = self.get_aggregation_stats()
+        if self.enable_tracking:
+            info['tracking_enabled'] = True
+            if self.tracking_integration:
+                info['tracking_stats'] = self.tracking_integration.get_tracking_stats()
+                info['active_tracks'] = len(self.tracking_integration.get_active_tracks())
+        return info

@@ -1,0 +1,322 @@
+# C3Ghost模块嵌入式部署配置
+# 基于YOLO-APD架构的C3Ghost模块在不同嵌入式平台的优化配置
+# Author: YOLOS Team
+# Date: 2024-01-15
+# Version: 1.0.0
+
+# ===== 全局配置 =====
+global:
+  version: "1.0.0"
+  description: "C3Ghost模块嵌入式部署配置"
+  last_updated: "2024-01-15"
+  
+# ===== C3Ghost模块配置 =====
+c3ghost_module:
+  enabled: true
+  description: "C3Ghost (C3 with Ghost Bottleneck) 轻量化卷积模块"
+  
+  # 核心参数
+  core_params:
+    ghost_ratio: 2              # Ghost卷积比例
+    cheap_operation: "dw_conv"  # 廉价操作类型: dw_conv, linear
+    activation: "relu"          # 激活函数: relu, swish, mish
+    use_se: false              # 是否使用SE注意力
+    drop_path_rate: 0.0        # DropPath率
+    
+  # 性能优化
+  optimization:
+    fuse_conv_bn: true         # 融合卷积和BN层
+    quantization_aware: true   # 量化感知训练
+    pruning_enabled: false     # 剪枝功能
+    knowledge_distillation: false  # 知识蒸馏
+    
+  # 内存优化
+  memory_optimization:
+    gradient_checkpointing: true   # 梯度检查点
+    mixed_precision: true          # 混合精度
+    memory_efficient_attention: true  # 内存高效注意力
+    
+# ===== 平台特定配置 =====
+platform_configs:
+  
+  # Raspberry Pi 4B配置
+  raspberry_pi_4b:
+    enabled: true
+    hardware_specs:
+      cpu: "ARM Cortex-A72"
+      cores: 4
+      memory: "4GB/8GB"
+      gpu: "VideoCore VI"
+      
+    c3ghost_config:
+      ghost_ratio: 2
+      channels_reduction: 0.75    # 通道数减少75%
+      depth_multiplier: 0.5       # 深度乘数
+      width_multiplier: 0.75      # 宽度乘数
+      use_se: false
+      activation: "relu"          # ReLU更适合ARM处理器
+      
+    performance_targets:
+      max_inference_time: 200     # 最大推理时间 (ms)
+      max_memory_usage: 512       # 最大内存使用 (MB)
+      target_fps: 5               # 目标FPS
+      
+    optimization_flags:
+      enable_neon: true           # 启用NEON指令集
+      use_int8_quantization: true # 使用INT8量化
+      optimize_for_size: true     # 优化模型大小
+      
+  # NVIDIA Jetson Nano配置
+  jetson_nano:
+    enabled: true
+    hardware_specs:
+      cpu: "ARM Cortex-A57"
+      cores: 4
+      memory: "4GB"
+      gpu: "Maxwell 128-core"
+      
+    c3ghost_config:
+      ghost_ratio: 2
+      channels_reduction: 0.5     # 通道数减少50%
+      depth_multiplier: 0.75      # 深度乘数
+      width_multiplier: 0.875     # 宽度乘数
+      use_se: true               # Jetson可以支持SE
+      activation: "swish"         # GPU加速的Swish
+      
+    performance_targets:
+      max_inference_time: 100     # 最大推理时间 (ms)
+      max_memory_usage: 1024      # 最大内存使用 (MB)
+      target_fps: 10              # 目标FPS
+      
+    optimization_flags:
+      use_tensorrt: true          # 使用TensorRT优化
+      use_fp16: true             # 使用FP16精度
+      enable_dla: false          # DLA在Nano上不可用
+      
+  # NVIDIA Jetson Xavier NX配置
+  jetson_xavier_nx:
+    enabled: true
+    hardware_specs:
+      cpu: "ARM Carmel"
+      cores: 6
+      memory: "8GB"
+      gpu: "Volta 384-core"
+      
+    c3ghost_config:
+      ghost_ratio: 2
+      channels_reduction: 0.25    # 通道数减少25%
+      depth_multiplier: 0.875     # 深度乘数
+      width_multiplier: 1.0       # 宽度乘数
+      use_se: true
+      activation: "mish"          # 更强大的激活函数
+      
+    performance_targets:
+      max_inference_time: 50      # 最大推理时间 (ms)
+      max_memory_usage: 2048      # 最大内存使用 (MB)
+      target_fps: 20              # 目标FPS
+      
+    optimization_flags:
+      use_tensorrt: true
+      use_fp16: true
+      enable_dla: true           # 启用深度学习加速器
+      
+  # Intel NUC配置
+  intel_nuc:
+    enabled: true
+    hardware_specs:
+      cpu: "Intel Core i5/i7"
+      cores: 4
+      memory: "8GB/16GB"
+      gpu: "Intel Iris Xe"
+      
+    c3ghost_config:
+      ghost_ratio: 2
+      channels_reduction: 0.125   # 通道数减少12.5%
+      depth_multiplier: 1.0       # 深度乘数
+      width_multiplier: 1.0       # 宽度乘数
+      use_se: true
+      activation: "swish"
+      
+    performance_targets:
+      max_inference_time: 30      # 最大推理时间 (ms)
+      max_memory_usage: 4096      # 最大内存使用 (MB)
+      target_fps: 30              # 目标FPS
+      
+    optimization_flags:
+      use_openvino: true          # 使用OpenVINO优化
+      use_avx2: true             # 使用AVX2指令集
+      enable_mkldnn: true        # 启用MKL-DNN
+      
+  # ESP32-S3配置 (超轻量级)
+  esp32_s3:
+    enabled: true
+    hardware_specs:
+      cpu: "Xtensa LX7"
+      cores: 2
+      memory: "512KB SRAM + 8MB PSRAM"
+      
+    c3ghost_config:
+      ghost_ratio: 4              # 更高的Ghost比例
+      channels_reduction: 0.9     # 通道数减少90%
+      depth_multiplier: 0.25      # 深度乘数
+      width_multiplier: 0.5       # 宽度乘数
+      use_se: false
+      activation: "relu"          # 最简单的激活
+      
+    performance_targets:
+      max_inference_time: 1000    # 最大推理时间 (ms)
+      max_memory_usage: 256       # 最大内存使用 (KB)
+      target_fps: 1               # 目标FPS
+      
+    optimization_flags:
+      extreme_quantization: true  # 极端量化
+      use_int8_only: true        # 仅使用INT8
+      minimize_memory: true      # 最小化内存使用
+
+# ===== 动态配置选择 =====
+dynamic_config:
+  enabled: true
+  
+  # 自动平台检测
+  auto_detection:
+    enabled: true
+    detection_methods:
+      - "cpu_info"               # CPU信息检测
+      - "memory_info"            # 内存信息检测
+      - "gpu_info"               # GPU信息检测
+      - "system_info"            # 系统信息检测
+      
+  # 性能自适应
+  adaptive_performance:
+    enabled: true
+    monitoring_interval: 10     # 监控间隔 (秒)
+    
+    # 性能阈值
+    thresholds:
+      cpu_usage_high: 80         # CPU使用率高阈值 (%)
+      memory_usage_high: 85      # 内存使用率高阈值 (%)
+      temperature_high: 70       # 温度高阈值 (°C)
+      inference_time_high: 200   # 推理时间高阈值 (ms)
+      
+    # 自适应策略
+    adaptation_strategies:
+      reduce_channels: true      # 减少通道数
+      increase_ghost_ratio: true # 增加Ghost比例
+      lower_precision: true      # 降低精度
+      skip_frames: true          # 跳帧处理
+
+# ===== 部署配置 =====
+deployment:
+  
+  # 模型转换配置
+  model_conversion:
+    # ONNX转换
+    onnx:
+      enabled: true
+      opset_version: 11
+      dynamic_axes: true
+      
+    # TensorRT转换
+    tensorrt:
+      enabled: true
+      precision: "fp16"          # fp32, fp16, int8
+      max_workspace_size: "1GB"
+      
+    # OpenVINO转换
+    openvino:
+      enabled: true
+      precision: "FP16"
+      target_device: "CPU"
+      
+    # TensorFlow Lite转换
+    tflite:
+      enabled: true
+      quantization: "int8"       # float32, float16, int8
+      representative_dataset: true
+      
+  # 运行时配置
+  runtime:
+    # 线程配置
+    threading:
+      num_threads: "auto"       # 线程数量
+      thread_affinity: true     # 线程亲和性
+      
+    # 内存配置
+    memory:
+      preallocate: true         # 预分配内存
+      memory_pool_size: "auto"  # 内存池大小
+      
+    # 调度配置
+    scheduling:
+      priority: "high"          # 进程优先级
+      cpu_affinity: "auto"      # CPU亲和性
+
+# ===== 监控和日志 =====
+monitoring:
+  enabled: true
+  
+  # 性能监控
+  performance:
+    log_inference_time: true
+    log_memory_usage: true
+    log_cpu_usage: true
+    log_gpu_usage: true
+    log_temperature: true
+    
+  # 质量监控
+  quality:
+    log_accuracy: true
+    log_detection_count: true
+    log_confidence_scores: true
+    
+  # 日志配置
+  logging:
+    level: "INFO"              # DEBUG, INFO, WARNING, ERROR
+    file_path: "/var/log/yolos/c3ghost.log"
+    max_file_size: "10MB"
+    backup_count: 5
+    
+# ===== 测试和验证 =====
+testing:
+  enabled: true
+  
+  # 单元测试
+  unit_tests:
+    test_forward_pass: true
+    test_memory_usage: true
+    test_inference_speed: true
+    test_accuracy: true
+    
+  # 集成测试
+  integration_tests:
+    test_platform_compatibility: true
+    test_model_conversion: true
+    test_runtime_performance: true
+    
+  # 基准测试
+  benchmarks:
+    standard_datasets: ["coco_val", "custom_test"]
+    metrics: ["mAP", "FPS", "Memory", "Power"]
+    
+# ===== 故障处理 =====
+error_handling:
+  enabled: true
+  
+  # 自动恢复
+  auto_recovery:
+    enabled: true
+    max_retries: 3
+    retry_delay: 1.0           # 重试延迟 (秒)
+    
+  # 降级策略
+  fallback_strategies:
+    - "reduce_model_complexity"
+    - "lower_input_resolution"
+    - "increase_inference_interval"
+    - "switch_to_cpu_only"
+    
+  # 错误报告
+  error_reporting:
+    enabled: true
+    report_to_server: false
+    local_log_only: true

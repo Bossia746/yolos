@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 YOLOS主界面入口
-整合视频捕捉、图像识别和训练功能
-专注于核心功能，避免过度扩展
+基于BaseYOLOSGUI的功能选择界面
 """
 
 import tkinter as tk
@@ -10,10 +9,13 @@ from tkinter import ttk, messagebox
 import sys
 import os
 from pathlib import Path
+from typing import List, Dict
 
 # 添加项目路径
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+from src.gui.base_gui import BaseYOLOSGUI
 
 try:
     from src.gui.yolos_training_gui import YOLOSTrainingGUI
@@ -27,34 +29,34 @@ except ImportError as e:
     class BasicPetRecognitionGUI:
         def run(self): print("基础识别界面暂不可用")
 
-class YOLOSMainGUI:
+class YOLOSMainGUI(BaseYOLOSGUI):
     """YOLOS主界面"""
     
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("YOLOS - 智能视频识别系统")
-        self.root.geometry("600x400")
-        self.root.resizable(True, True)
+        super().__init__(title="YOLOS - 智能视频识别系统", 
+                        config_file="main_gui_config.json",
+                        geometry="600x400")
         
-        # 设置图标和样式
+        # 设置为功能选择模式
+        self.is_function_selector = True
+        
+        # 重新创建界面
+        self.create_main_interface()
+    
+    def setup_ui(self):
+        """重写基类的UI设置方法"""
+        # 功能选择模式不需要标准的摄像头界面
+        pass
+    
+    def create_main_interface(self):
+        """创建主功能选择界面"""
+        # 清空现有内容
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        
+        # 设置样式
         self.setup_style()
-        self.create_interface()
         
-        # 居中显示
-        self.center_window()
-    
-    def setup_style(self):
-        """设置界面样式"""
-        style = ttk.Style()
-        style.theme_use('clam')
-        
-        # 配置颜色
-        style.configure('Title.TLabel', font=('Arial', 16, 'bold'))
-        style.configure('Subtitle.TLabel', font=('Arial', 10))
-        style.configure('Action.TButton', font=('Arial', 12), padding=10)
-    
-    def create_interface(self):
-        """创建主界面"""
         # 主框架
         main_frame = ttk.Frame(self.root, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
@@ -104,19 +106,24 @@ class YOLOSMainGUI:
         ttk.Button(training_frame, text="启动训练界面", style='Action.TButton',
                   command=self.start_training_interface).pack(anchor=tk.W, pady=(5, 0))
         
-        # 状态栏
-        status_frame = ttk.Frame(main_frame)
-        status_frame.pack(fill=tk.X, side=tk.BOTTOM)
-        
-        self.status_label = ttk.Label(status_frame, text="就绪", relief=tk.SUNKEN, anchor=tk.W)
-        self.status_label.pack(fill=tk.X, side=tk.LEFT)
-        
-        # 系统信息
-        info_label = ttk.Label(status_frame, text="YOLOS v1.0", anchor=tk.E)
-        info_label.pack(side=tk.RIGHT, padx=(10, 0))
+        # 创建状态栏
+        self.create_status_bar(self.root)
         
         # 菜单栏
         self.create_menu()
+        
+        # 居中显示
+        self.center_window()
+    
+    def setup_style(self):
+        """设置界面样式"""
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # 配置颜色
+        style.configure('Title.TLabel', font=('Arial', 16, 'bold'))
+        style.configure('Subtitle.TLabel', font=('Arial', 10))
+        style.configure('Action.TButton', font=('Arial', 12), padding=10)
     
     def create_menu(self):
         """创建菜单栏"""
@@ -152,7 +159,28 @@ class YOLOSMainGUI:
         height = self.root.winfo_height()
         x = (self.root.winfo_screenwidth() // 2) - (width // 2)
         y = (self.root.winfo_screenheight() // 2) - (height // 2)
-        self.root.geometry(f'{width}x{height}+{x}+{y}')
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+    
+    # 实现基类的抽象方法
+    def load_model(self, model_path: str) -> bool:
+        """加载模型（功能选择界面不需要）"""
+        return True
+    
+    def perform_detection(self, frame):
+        """执行检测（功能选择界面不需要）"""
+        return frame
+    
+    def process_frame(self, frame):
+        """处理帧（功能选择界面不需要）"""
+        return frame
+    
+    def get_detection_results(self) -> List[Dict]:
+        """获取检测结果（功能选择界面不需要）"""
+        return []
+    
+    def on_model_changed(self, model_path: str):
+        """模型变更回调（功能选择界面不需要）"""
+        pass
     
     def update_status(self, message: str):
         """更新状态栏"""

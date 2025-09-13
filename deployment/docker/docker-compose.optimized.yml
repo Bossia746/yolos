@@ -1,0 +1,464 @@
+# 优化的Docker Compose配置
+# 修复部署和集成问题，改进服务编排和依赖管理
+
+version: '3.8'
+
+# ============================================================================
+# 服务定义
+# ============================================================================
+services:
+  # 主应用服务 - 优化配置
+  yolos-app:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/optimized_dockerfile
+      target: production
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: yolos:latest
+    container_name: yolos-app
+    hostname: yolos-app
+    ports:
+      - "8000:8000"
+    environment:
+      # 应用配置
+      - PYTHONPATH=/app/src
+      - YOLOS_ENV=production
+      - YOLOS_LOG_LEVEL=INFO
+      - YOLOS_DEBUG=false
+      # 数据库配置
+      - DATABASE_URL=postgresql://yolos:yolos_secure_password@postgres:5432/yolos
+      - REDIS_URL=redis://redis:6379/0
+      # 性能配置
+      - WORKERS=4
+      - MAX_REQUESTS=1000
+      - TIMEOUT=120
+      # 安全配置
+      - SECRET_KEY=${SECRET_KEY:-default_secret_key_change_in_production}
+      - JWT_SECRET=${JWT_SECRET:-jwt_secret_change_in_production}
+    volumes:
+      # 配置文件（只读）
+      - ../../config:/app/config:ro
+      # 模型文件（只读）
+      - ../../models:/app/models:ro
+      # 持久化数据
+      - yolos-logs:/app/logs
+      - yolos-data:/app/data
+      - yolos-cache:/app/cache
+      - yolos-temp:/app/temp
+    networks:
+      - yolos-backend
+      - yolos-frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Web界面服务
+  yolos-web:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/optimized_dockerfile
+      target: production
+    image: yolos-web:latest
+    container_name: yolos-web
+    hostname: yolos-web
+    ports:
+      - "8080:8000"
+    environment:
+      - PYTHONPATH=/app/src
+      - YOLOS_ENV=production
+      - FLASK_ENV=production
+      - YOLOS_API_URL=http://yolos-app:8000
+    volumes:
+      - ../../web:/app/web:ro
+      - ../../config:/app/config:ro
+      - yolos-web-logs:/app/logs
+    networks:
+      - yolos-frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - yolos-app
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Redis缓存和消息队列 - 优化配置
+  redis:
+    image: redis:7-alpine
+    container_name: yolos-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_secure_password}
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - yolos-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+    command: >
+      redis-server /usr/local/etc/redis/redis.conf
+      --requirepass ${REDIS_PASSWORD:-redis_secure_password}
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # PostgreSQL数据库 - 优化配置
+  postgres:
+    image: postgres:15-alpine
+    container_name: yolos-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=yolos
+      - POSTGRES_USER=yolos
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-yolos_secure_password}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    networks:
+      - yolos-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yolos -d yolos"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c shared_preload_libraries=pg_stat_statements
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Nginx反向代理 - 优化配置
+  nginx:
+    image: nginx:alpine
+    container_name: yolos-nginx
+    hostname: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+      - yolos-static:/var/www/static:ro
+    networks:
+      - yolos-frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - yolos-app
+      - yolos-web
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # Prometheus监控
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: yolos-prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    networks:
+      - yolos-monitoring
+      - yolos-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Grafana可视化
+  grafana:
+    image: grafana/grafana:latest
+    container_name: yolos-grafana
+    hostname: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin_secure_password}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/plugins:/var/lib/grafana/plugins
+    networks:
+      - yolos-monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # 日志聚合服务
+  fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: yolos-fluentd
+    hostname: fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - ./logging/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - yolos-logs:/var/log/yolos
+    networks:
+      - yolos-monitoring
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # 健康检查服务
+  healthcheck:
+    image: alpine:latest
+    container_name: yolos-healthcheck
+    volumes:
+      - ./scripts/healthcheck.sh:/healthcheck.sh:ro
+    networks:
+      - yolos-backend
+      - yolos-frontend
+    restart: "no"
+    command: >
+      sh -c '
+        apk add --no-cache curl &&
+        chmod +x /healthcheck.sh &&
+        /healthcheck.sh
+      '
+    depends_on:
+      - yolos-app
+      - yolos-web
+      - redis
+      - postgres
+
+# ============================================================================
+# 网络配置
+# ============================================================================
+networks:
+  # 前端网络（Web服务）
+  yolos-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.1.0/24
+    labels:
+      - "com.yolos.network.type=frontend"
+
+  # 后端网络（应用和数据库）
+  yolos-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24
+    labels:
+      - "com.yolos.network.type=backend"
+
+  # 监控网络
+  yolos-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.3.0/24
+    labels:
+      - "com.yolos.network.type=monitoring"
+
+# ============================================================================
+# 数据卷配置
+# ============================================================================
+volumes:
+  # 应用数据
+  yolos-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/logs
+    labels:
+      - "com.yolos.volume.type=logs"
+
+  yolos-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/data
+    labels:
+      - "com.yolos.volume.type=data"
+
+  yolos-cache:
+    driver: local
+    labels:
+      - "com.yolos.volume.type=cache"
+
+  yolos-temp:
+    driver: local
+    labels:
+      - "com.yolos.volume.type=temp"
+
+  yolos-static:
+    driver: local
+    labels:
+      - "com.yolos.volume.type=static"
+
+  yolos-web-logs:
+    driver: local
+    labels:
+      - "com.yolos.volume.type=web-logs"
+
+  # 数据库数据
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/redis
+    labels:
+      - "com.yolos.volume.type=redis"
+
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/postgres
+    labels:
+      - "com.yolos.volume.type=postgres"
+
+  # 监控数据
+  prometheus-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/prometheus
+    labels:
+      - "com.yolos.volume.type=prometheus"
+
+  grafana-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/grafana
+    labels:
+      - "com.yolos.volume.type=grafana"
+
+# ============================================================================
+# 扩展配置
+# ============================================================================
+# 开发环境覆盖
+# 使用: docker-compose -f docker-compose.optimized.yml -f docker-compose.dev.yml up
+
+# 生产环境覆盖
+# 使用: docker-compose -f docker-compose.optimized.yml -f docker-compose.prod.yml up
+
+# GPU环境覆盖
+# 使用: docker-compose -f docker-compose.optimized.yml -f docker-compose.gpu.yml up

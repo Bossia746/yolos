@@ -1,0 +1,198 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yolos"
+version = "1.0.0"
+authors = [
+    {name = "YOLOS Team", email = "team@yolos.ai"},
+]
+description = "多平台AIoT视觉大模型项目 - Multi-platform AIoT Vision Large Model Project"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["dependencies"]
+
+[project.urls]
+"Homepage" = "https://github.com/your-username/yolos"
+"Bug Reports" = "https://github.com/your-username/yolos/issues"
+"Source" = "https://github.com/your-username/yolos"
+"Documentation" = "https://yolos.readthedocs.io/"
+
+[project.optional-dependencies]
+raspberry = [
+    "RPi.GPIO>=0.7.1",
+    "gpiozero>=1.6.2",
+    "picamera>=1.13",
+    "adafruit-circuitpython-motor>=3.4.0",
+]
+ros1 = [
+    "rospy",
+    "sensor_msgs",
+    "cv_bridge",
+    "geometry_msgs",
+]
+ros2 = [
+    "rclpy",
+    "sensor_msgs",
+    "cv_bridge",
+    "geometry_msgs",
+    "std_msgs",
+]
+gpu = [
+    "tensorrt>=8.0.0",
+    "cupy>=11.0.0",
+    "onnxruntime-gpu>=1.12.0",
+]
+dev = [
+    "pytest>=7.2.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=22.10.0",
+    "flake8>=5.0.0",
+    "mypy>=0.991",
+    "pre-commit>=2.20.0",
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+]
+web = [
+    "fastapi>=0.95.0",
+    "uvicorn>=0.20.0",
+    "websockets>=10.4",
+    "streamlit>=1.20.0",
+]
+medical = [
+    "pydicom>=2.3.0",
+    "nibabel>=4.0.0",
+    "SimpleITK>=2.2.0",
+]
+
+[project.scripts]
+yolos-detect = "recognition.cli:main"
+yolos-train = "training.cli:main"
+yolos-deploy = "deployment.cli:main"
+yolos-web = "web.app:main"
+yolos-test = "tests.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m "not slow"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "gpu: marks tests that require GPU",
+    "raspberry: marks tests that require Raspberry Pi",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\bProtocol\):",
+    "@(abc\.)?abstractmethod",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg-info",
+    ".venv",
+    "venv",
+]

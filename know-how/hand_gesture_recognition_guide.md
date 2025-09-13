@@ -454,6 +454,3 @@ def benchmark_detector(detector, test_images):
 
 ---
 
-**更新日期**: 2024-01-XX  
-**维护者**: YOLOS项目团队  
-**版本**: 1.0

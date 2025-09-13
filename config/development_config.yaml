@@ -1,0 +1,162 @@
+# 开发环境配置
+# 覆盖默认配置中的开发相关设置
+
+# 日志配置
+logging:
+  level: DEBUG
+  console:
+    enabled: true
+    level: DEBUG
+  file:
+    enabled: true
+    level: INFO
+    path: "logs/yolos_dev.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# 调试配置
+debug:
+  enabled: true
+  profiling: true
+  memory_tracking: true
+  performance_monitoring: true
+  verbose_errors: true
+
+# 开发服务器配置
+server:
+  host: "localhost"
+  port: 8000
+  debug: true
+  auto_reload: true
+  workers: 1
+
+# 数据库配置（开发环境）
+database:
+  type: "sqlite"
+  path: "data/dev_yolos.db"
+  echo: true  # SQL查询日志
+  pool_size: 5
+
+# 缓存配置
+cache:
+  type: "memory"
+  ttl: 300  # 5分钟
+  max_size: 1000
+
+# 模型配置（开发环境优化）
+models:
+  default_model: "yolov11n.pt"  # 开发环境使用轻量模型
+  model_type: "yolov11"
+  model_size: "n"  # 开发环境使用nano版本
+  cache_dir: "models/cache/dev"
+  download_timeout: 300
+  auto_download: true
+  use_gpu: false  # 开发环境可能没有GPU
+  batch_size: 1
+  precision: "fp32"
+  
+  # YOLOv11开发配置
+  yolov11:
+    # C2PSA模块配置（开发环境简化）
+    c2psa:
+      enabled: true
+      attention_type: "pyramid_slice"
+      multi_scale: false  # 开发环境简化
+    
+    # C3k2模块配置（开发环境简化）
+    c3k2:
+      enabled: true
+      parallel_conv: false  # 开发环境简化
+      channel_separation: true
+      kernel_sizes: [3, 5]  # 减少卷积核数量
+
+# 插件配置
+plugins:
+  auto_discover: true
+  auto_load: false  # 开发环境手动加载
+  directories:
+    - "src/plugins"
+    - "plugins"
+  hot_reload: true
+  validation:
+    strict: false
+    allow_dev_plugins: true
+
+# 安全配置（开发环境宽松）
+security:
+  authentication:
+    required: false
+  api_key:
+    required: false
+  cors:
+    enabled: true
+    origins: ["*"]
+  rate_limiting:
+    enabled: false
+
+# 监控配置
+monitoring:
+  metrics:
+    enabled: true
+    interval: 30
+  health_check:
+    enabled: true
+    interval: 60
+  alerts:
+    enabled: false
+
+# 测试配置
+testing:
+  mock_external_apis: true
+  test_data_dir: "test_data"
+  coverage:
+    enabled: true
+    min_coverage: 80
+
+# 开发工具配置
+dev_tools:
+  hot_reload: true
+  auto_format: true
+  lint_on_save: true
+  type_checking: true
+  
+# 实验性功能
+experimental:
+  new_detection_algorithm: true
+  advanced_preprocessing: true
+  ml_optimization: false
+
+# 性能配置（开发环境）
+performance:
+  max_workers: 2
+  queue_size: 10
+  timeout: 30
+  memory_limit: "1GB"
+  
+# 存储配置
+storage:
+  type: "local"
+  base_path: "data/dev"
+  temp_dir: "temp/dev"
+  cleanup_interval: 3600  # 1小时
+  
+# API配置
+api:
+  version: "v1"
+  prefix: "/api/v1"
+  docs:
+    enabled: true
+    path: "/docs"
+  rate_limit:
+    enabled: false
+    
+# 外部服务配置（开发环境）
+external_services:
+  openai:
+    enabled: false
+    mock: true
+  modelscope:
+    enabled: false
+    mock: true
+  cloud_storage:
+    enabled: false
+    mock: true

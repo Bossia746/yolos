@@ -6,10 +6,14 @@ import cv2
 import time
 import threading
 from queue import Queue
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, List
 import numpy as np
 
 from ..models.yolo_factory import YOLOFactory
+from .feature_aggregation import FeatureAggregator, AggregationConfig, PlatformType
+from .temporal_aggregator import TemporalAggregator, TemporalConfig, DetectionResult, AggregationStrategy
+from ..tracking.tracking_integration import TrackingIntegration, IntegratedTrackingConfig, TrackingMode
+from ..tracking.multi_object_tracker import TrackingConfig, TrackingStrategy
 
 
 class RealtimeDetector:
@@ -18,7 +22,11 @@ class RealtimeDetector:
     def __init__(self, 
                  model_type: str = 'yolov8',
                  model_path: Optional[str] = None,
-                 device: str = 'auto'):
+                 device: str = 'auto',
+                 enable_aggregation: bool = True,
+                 platform_type: PlatformType = PlatformType.DESKTOP,
+                 enable_tracking: bool = True,
+                 tracking_config: Optional[IntegratedTrackingConfig] = None):
         """
         初始化实时检测器
         
@@ -26,6 +34,8 @@ class RealtimeDetector:
             model_type: 模型类型
             model_path: 模型路径
             device: 设备类型
+            enable_aggregation: 是否启用特征聚合
+            platform_type: 平台类型
         """
         self.model = YOLOFactory.create_model(model_type, model_path, device)
         self.is_running = False
@@ -34,6 +44,44 @@ class RealtimeDetector:
         self.fps = 0
         self.frame_count = 0
         self.start_time = time.time()
+        self._adaptive_fps = 30.0  # 自适应帧率
+        self._target_fps = 30.0
+        
+        # 特征聚合器
+        self.enable_aggregation = enable_aggregation
+        if enable_aggregation:
+            agg_config = AggregationConfig(platform_type=platform_type)
+            self.feature_aggregator = FeatureAggregator(agg_config)
+            
+            # 时序聚合器
+            temporal_config = TemporalConfig(
+                buffer_size=3 if platform_type in [PlatformType.RASPBERRY_PI, PlatformType.ESP32] else 5,
+                strategy=AggregationStrategy.ADAPTIVE,
+                enable_tracking=True
+            )
+            self.temporal_aggregator = TemporalAggregator(temporal_config)
+        else:
+            self.feature_aggregator = None
+            self.temporal_aggregator = None
+        
+        # 跟踪功能
+        self.enable_tracking = enable_tracking
+        self.tracking_integration = None
+        if enable_tracking:
+            config = tracking_config or IntegratedTrackingConfig(
+                mode=TrackingMode.ENHANCED,
+                tracking_config=TrackingConfig(
+                    strategy=TrackingStrategy.HYBRID,
+                    max_missing_frames=10
+                ),
+                aggregation_config=agg_config if enable_aggregation else None,
+                temporal_config=temporal_config if enable_aggregation else None
+            )
+            self.tracking_integration = TrackingIntegration(config)
+        
+        # 性能监控
+        self._performance_history = []
+        self._last_performance_check = time.time()
         
         # 回调函数
         self.detection_callback: Optional[Callable] = None
@@ -55,7 +103,33 @@ class RealtimeDetector:
                     frame = self.frame_queue.get(timeout=0.1)
                     
                     # 执行检测
+                    start_time = time.time()
                     results = self.model.predict(frame)
+                    detection_time = time.time() - start_time
+                    
+                    # 应用聚合和跟踪策略
+                    if self.tracking_integration:
+                        # 转换检测结果格式
+                        detection_results = self._convert_to_detection_results(results)
+                        
+                        # 跟踪集成器会自动处理特征聚合和时序聚合
+                        tracked_results = self.tracking_integration.process_detections(detection_results, frame)
+                        
+                        # 转换回原格式
+                        results = self._convert_from_detection_results(tracked_results)
+                    elif self.enable_aggregation and self.temporal_aggregator:
+                        # 传统聚合方式（向后兼容）
+                        # 转换检测结果格式
+                        detection_results = self._convert_to_detection_results(results)
+                        
+                        # 应用时序聚合
+                        aggregated_results = self.temporal_aggregator.add_detections(detection_results, frame)
+                        
+                        # 转换回原格式
+                        results = self._convert_from_detection_results(aggregated_results)
+                    
+                    # 自适应帧率调整
+                    self._adjust_adaptive_fps(detection_time)
                     
                     # 放入结果队列
                     if not self.result_queue.full():
@@ -205,6 +279,102 @@ class RealtimeDetector:
         """获取当前FPS"""
         return self.fps
     
+    def _convert_to_detection_results(self, results) -> List[DetectionResult]:
+        """转换检测结果为DetectionResult格式"""
+        detection_results = []
+        
+        if hasattr(results, 'boxes') and results.boxes is not None:
+            boxes = results.boxes
+            for i in range(len(boxes)):
+                if hasattr(boxes, 'xyxy') and hasattr(boxes, 'conf') and hasattr(boxes, 'cls'):
+                    bbox = boxes.xyxy[i].cpu().numpy()
+                    confidence = float(boxes.conf[i].cpu().numpy())
+                    class_id = int(boxes.cls[i].cpu().numpy())
+                    class_name = results.names.get(class_id, f"class_{class_id}") if hasattr(results, 'names') else f"class_{class_id}"
+                    
+                    detection_results.append(DetectionResult(
+                        bbox=tuple(bbox),
+                        confidence=confidence,
+                        class_id=class_id,
+                        class_name=class_name,
+                        timestamp=time.time(),
+                        frame_id=self.frame_count
+                    ))
+        
+        return detection_results
+    
+    def _convert_from_detection_results(self, detection_results: List[DetectionResult]):
+        """从DetectionResult格式转换回原格式"""
+        # 这里需要根据具体的结果格式进行转换
+        # 简化实现，返回原始格式的模拟
+        return detection_results
+    
+    def _adjust_adaptive_fps(self, detection_time: float):
+        """自适应帧率调整"""
+        # 记录性能数据
+        current_time = time.time()
+        self._performance_history.append({
+            'timestamp': current_time,
+            'detection_time': detection_time
+        })
+        
+        # 保持最近10秒的数据
+        cutoff_time = current_time - 10.0
+        self._performance_history = [p for p in self._performance_history if p['timestamp'] > cutoff_time]
+        
+        # 每秒调整一次帧率
+        if current_time - self._last_performance_check > 1.0:
+            if len(self._performance_history) > 5:
+                avg_detection_time = np.mean([p['detection_time'] for p in self._performance_history])
+                
+                # 计算理论最大帧率
+                max_fps = 1.0 / (avg_detection_time + 0.01)  # 加上一些缓冲
+                
+                # 自适应调整
+                if max_fps < self._target_fps * 0.8:
+                    self._adaptive_fps = max(max_fps * 0.9, 5.0)  # 最低5fps
+                elif max_fps > self._target_fps * 1.2:
+                    self._adaptive_fps = min(self._target_fps, max_fps * 0.95)
+                
+            self._last_performance_check = current_time
+    
+    def set_target_fps(self, fps: float):
+        """设置目标帧率"""
+        self._target_fps = max(1.0, min(fps, 60.0))
+        self._adaptive_fps = self._target_fps
+    
+    def get_aggregation_stats(self) -> Dict[str, Any]:
+        """获取聚合统计信息"""
+        stats = {}
+        if self.feature_aggregator:
+            stats['feature_aggregation'] = self.feature_aggregator.get_statistics()
+        if self.temporal_aggregator:
+            stats['temporal_aggregation'] = self.temporal_aggregator.get_statistics()
+        if self.tracking_integration:
+            stats['tracking_stats'] = self.tracking_integration.get_tracking_stats()
+        return stats
+    
     def get_model_info(self) -> Dict[str, Any]:
         """获取模型信息"""
-        return self.model.get_model_info()
+        info = {
+            'model_type': type(self.model).__name__,
+            'model_info': self.model.get_model_info() if hasattr(self.model, 'get_model_info') else {},
+            'current_fps': self.fps,
+            'adaptive_fps': self._adaptive_fps,
+            'target_fps': self._target_fps,
+            'aggregation_enabled': self.enable_aggregation,
+            'tracking_enabled': self.enable_tracking,
+            'queue_sizes': {
+                'frame_queue': self.frame_queue.qsize(),
+                'result_queue': self.result_queue.qsize()
+            }
+        }
+        
+        if self.tracking_integration:
+            info['tracking_stats'] = self.tracking_integration.get_tracking_stats()
+            info['active_tracks'] = len(self.tracking_integration.get_active_tracks())
+        
+        if self.enable_aggregation:
+            info['aggregation_stats'] = self.get_aggregation_stats()
+        
+        return info

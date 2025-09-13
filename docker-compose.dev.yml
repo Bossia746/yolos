@@ -1,0 +1,240 @@
+# Docker Compose configuration for YOLOS development environment
+# Optimized for development workflow with hot reloading and debugging
+
+version: '3.8'
+
+services:
+  # Development YOLOS application
+  yolos-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-dev
+    ports:
+      - "8000:8000"
+      - "8888:8888"  # Jupyter notebook
+      - "5678:5678"  # Debugger port
+    environment:
+      - PYTHONPATH=/app/src
+      - YOLOS_ENV=development
+      - YOLOS_LOG_LEVEL=DEBUG
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      - .:/app
+      - /app/.git  # Exclude .git directory
+      - dev-cache:/app/.cache
+      - dev-models:/app/models
+    networks:
+      - yolos-dev-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    command: >
+      bash -c "
+        echo 'Starting YOLOS development environment...'
+        pip install -e '.[dev]'
+        python -m flask run --host=0.0.0.0 --port=8000 --reload
+      "
+    depends_on:
+      - redis-dev
+      - postgres-dev
+
+  # Development web interface
+  yolos-web-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-web-dev
+    ports:
+      - "8080:8000"
+    environment:
+      - PYTHONPATH=/app/src
+      - YOLOS_ENV=development
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      - ./web:/app/web
+      - ./src:/app/src
+      - ./config:/app/config
+    networks:
+      - yolos-dev-network
+    restart: unless-stopped
+    command: >
+      bash -c "
+        cd /app/web
+        python app.py
+      "
+    depends_on:
+      - yolos-dev
+
+  # Jupyter notebook for development
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-jupyter
+    ports:
+      - "8889:8888"
+    environment:
+      - PYTHONPATH=/app/src
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - .:/app
+      - jupyter-data:/home/yolos/.jupyter
+    networks:
+      - yolos-dev-network
+    restart: unless-stopped
+    command: >
+      bash -c "
+        pip install -e '.[dev]'
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root \
+          --NotebookApp.token='' --NotebookApp.password=''
+      "
+
+  # Redis for development
+  redis-dev:
+    image: redis:7-alpine
+    container_name: yolos-redis-dev
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-dev-data:/data
+    networks:
+      - yolos-dev-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # PostgreSQL for development
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: yolos-postgres-dev
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=yolos_dev
+      - POSTGRES_USER=yolos_dev
+      - POSTGRES_PASSWORD=dev_password
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+      - ./scripts/init_dev_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - yolos-dev-network
+    restart: unless-stopped
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-test-runner
+    environment:
+      - PYTHONPATH=/app/src
+      - YOLOS_ENV=test
+    volumes:
+      - .:/app
+      - test-cache:/app/.pytest_cache
+    networks:
+      - yolos-dev-network
+    profiles:
+      - testing
+    command: >
+      bash -c "
+        pip install -e '.[dev]'
+        pytest tests/ -v --cov=src --cov-report=html
+      "
+    depends_on:
+      - redis-dev
+      - postgres-dev
+
+  # Code quality checker
+  linter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-linter
+    volumes:
+      - .:/app
+    networks:
+      - yolos-dev-network
+    profiles:
+      - linting
+    command: >
+      bash -c "
+        pip install -e '.[dev]'
+        echo 'Running code quality checks...'
+        black --check src tests scripts
+        isort --check-only src tests scripts
+        flake8 src tests scripts
+        mypy src
+        echo 'All checks passed!'
+      "
+
+  # Documentation server
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-docs
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./docs:/app/docs
+      - ./src:/app/src
+    networks:
+      - yolos-dev-network
+    profiles:
+      - docs
+    command: >
+      bash -c "
+        pip install -e '.[dev]'
+        cd docs
+        python -m http.server 8000
+      "
+
+  # File watcher for auto-restart
+  watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: yolos-watcher
+    volumes:
+      - .:/app
+    networks:
+      - yolos-dev-network
+    profiles:
+      - watcher
+    command: >
+      bash -c "
+        pip install watchdog
+        watchmedo auto-restart --directory=/app/src --pattern='*.py' \
+          --recursive -- python -m web.app
+      "
+
+networks:
+  yolos-dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+volumes:
+  dev-cache:
+    driver: local
+  dev-models:
+    driver: local
+  jupyter-data:
+    driver: local
+  redis-dev-data:
+    driver: local
+  postgres-dev-data:
+    driver: local
+  test-cache:
+    driver: local

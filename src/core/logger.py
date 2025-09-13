@@ -9,12 +9,36 @@ import logging.handlers
 import sys
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
-from datetime import datetime
+from typing import Optional, Dict, Any, Union, List
+from datetime import datetime, timedelta
 import threading
 import json
 import traceback
 from functools import wraps
+import time
+import platform
+from dataclasses import dataclass
+from enum import Enum
+import uuid
+import psutil
+
+@dataclass
+class StructuredLogEntry:
+    """结构化日志条目"""
+    timestamp: str
+    level: str
+    message: str
+    event_type: str
+    session_id: str
+    context: Dict[str, Any]
+    
+class LogLevel(Enum):
+    """日志级别枚举"""
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARNING = logging.WARNING
+    ERROR = logging.ERROR
+    CRITICAL = logging.CRITICAL
 
 class YOLOSLogger:
     """
@@ -26,6 +50,7 @@ class YOLOSLogger:
     3. 分级管理 - 支持不同级别的日志输出
     4. 性能监控 - 内置性能日志功能
     5. 线程安全 - 支持多线程环境
+    6. 结构化日志 - 支持结构化日志记录
     """
     
     _instances: Dict[str, 'YOLOSLogger'] = {}
@@ -58,13 +83,19 @@ class YOLOSLogger:
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
         
+        # 生成会话ID
+        self._session_id = str(uuid.uuid4())
+        
         # 创建日志目录
         self.log_dir = Path("logs")
         self.system_dir = self.log_dir / "system"
         self.debug_dir = self.log_dir / "debug"
         self.performance_dir = self.log_dir / "performance"
+        self.structured_dir = self.log_dir / "structured"
+        self.metrics_dir = self.log_dir / "metrics"
         
-        for dir_path in [self.system_dir, self.debug_dir, self.performance_dir]:
+        for dir_path in [self.system_dir, self.debug_dir, self.performance_dir, 
+                        self.structured_dir, self.metrics_dir]:
             dir_path.mkdir(parents=True, exist_ok=True)
         
         # 设置日志格式
@@ -84,6 +115,9 @@ class YOLOSLogger:
         # 性能监控
         self.performance_data = {}
         self.start_times = {}
+        
+        # 结构化日志支持
+        self._structured_entries = []
         
         self._logger_initialized = True
     
@@ -275,15 +309,96 @@ class YOLOSLogger:
             'timestamp': datetime.now().isoformat(),
             'operation': operation,
             'data': data,
-            'stack_trace': traceback.format_stack()
+            'stack_trace': traceback.format_stack(),
+            'session_id': self._session_id,
+            'system_info': {
+                'platform': platform.system(),
+                'python_version': platform.python_version(),
+                'process_id': os.getpid(),
+                'thread_id': threading.current_thread().ident
+            }
         }
         
         try:
             with open(snapshot_file, 'w', encoding='utf-8') as f:
                 json.dump(snapshot, f, ensure_ascii=False, indent=2, default=str)
-            self.debug(f"Debug snapshot created: {snapshot_file}")
+            self.debug(f"Debug snapshot created: {snapshot_file}", 
+                      snapshot_file=str(snapshot_file), operation=operation)
         except Exception as e:
-            self.error(f"Failed to create debug snapshot: {e}")
+            self.error(f"Failed to create debug snapshot: {e}", exception=e)
+    
+    def log_structured(self, level: Union[int, str], message: str, 
+                      event_type: str = "general", **fields):
+        """记录结构化日志"""
+        if isinstance(level, str):
+            level = getattr(logging, level.upper())
+        
+        # 创建结构化日志条目
+        entry = StructuredLogEntry(
+            timestamp=datetime.now().isoformat(),
+            level=logging.getLevelName(level),
+            message=message,
+            event_type=event_type,
+            session_id=self._session_id,
+            context=fields
+        )
+        
+        # 保存到内存
+        self._structured_entries.append(entry)
+        
+        # 写入结构化日志文件
+        structured_file = self.structured_dir / f"structured_{datetime.now().strftime('%Y%m%d')}.jsonl"
+        try:
+            with open(structured_file, 'a', encoding='utf-8') as f:
+                json.dump({
+                    'timestamp': entry.timestamp,
+                    'level': entry.level,
+                    'message': entry.message,
+                    'event_type': entry.event_type,
+                    'session_id': entry.session_id,
+                    'context': entry.context
+                }, f, ensure_ascii=False, default=str)
+                f.write('\n')
+        except Exception as e:
+            self.error(f"Failed to write structured log: {e}")
+        
+        # 同时记录到标准日志
+        self.logger.log(level, message, extra=fields)
+    
+    def log_event(self, event_name: str, event_data: Dict[str, Any], 
+                  level: str = "INFO"):
+        """记录事件日志"""
+        self.log_structured(level, f"Event: {event_name}", 
+                           event_type="event", 
+                           event_name=event_name, 
+                           event_data=event_data)
+    
+    def log_metric(self, metric_name: str, value: Union[int, float], 
+                   unit: str = "", tags: Optional[Dict[str, str]] = None):
+        """记录指标日志"""
+        metric_data = {
+            'metric_name': metric_name,
+            'value': value,
+            'unit': unit,
+            'tags': tags or {}
+        }
+        
+        self.log_structured("INFO", f"Metric: {metric_name}={value}{unit}",
+                           event_type="metric", 
+                           metric_data=metric_data)
+    
+    def get_structured_logs(self, event_type: Optional[str] = None, 
+                           limit: Optional[int] = None) -> List[StructuredLogEntry]:
+        """获取结构化日志"""
+        logs = self._structured_entries
+        
+        if event_type:
+            logs = [log for log in logs if log.event_type == event_type]
+        
+        if limit:
+            logs = logs[-limit:]
+        
+        return logs
 
 # 装饰器函数
 def log_function_call(logger_name: str = "yolos"):

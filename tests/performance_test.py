@@ -21,7 +21,7 @@ from unittest.mock import Mock
 import statistics
 
 from .base_test import BaseTest
-from .test_config import TestConfig
+from .test_config import YOLOSTestConfig
 from .mock_data import MockDataGenerator
 
 @dataclass
@@ -55,7 +55,7 @@ class FrameRateTest(BaseTest):
     
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        self.test_config = TestConfig()
+        self.test_config = YOLOSTestConfig()
         self.mock_data = MockDataGenerator()
         
     def test_single_thread_fps(self, duration: float = 30.0) -> PerformanceTestResult:
@@ -268,7 +268,7 @@ class MemoryUsageTest(BaseTest):
     
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        self.test_config = TestConfig()
+        self.test_config = YOLOSTestConfig()
         self.mock_data = MockDataGenerator()
         
     def test_memory_usage_pattern(self, duration: float = 120.0) -> PerformanceTestResult:
@@ -468,7 +468,7 @@ class CPUUsageTest(BaseTest):
     
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        self.test_config = TestConfig()
+        self.test_config = YOLOSTestConfig()
         self.mock_data = MockDataGenerator()
         
     def test_cpu_usage_pattern(self, duration: float = 60.0) -> PerformanceTestResult:
@@ -566,7 +566,7 @@ class LatencyTest(BaseTest):
     
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        self.test_config = TestConfig()
+        self.test_config = YOLOSTestConfig()
         self.mock_data = MockDataGenerator()
         
     def test_end_to_end_latency(self, sample_count: int = 100) -> PerformanceTestResult:
@@ -663,7 +663,7 @@ class LoadTest(BaseTest):
     
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        self.test_config = TestConfig()
+        self.test_config = YOLOSTestConfig()
         self.mock_data = MockDataGenerator()
         
     def test_concurrent_load(self, concurrent_users: int = 10, duration: float = 60.0) -> PerformanceTestResult:

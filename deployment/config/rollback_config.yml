@@ -1,0 +1,320 @@
+# YOLOS 回滚和恢复配置
+# 用于管理部署快照、回滚策略和恢复机制
+
+# 快照管理配置
+max_snapshots: 15  # 最大保留快照数量
+retention_days: 30  # 快照保留天数
+backup_retention_days: 7  # 备份文件保留天数
+
+# 目录配置
+snapshots_dir: "deployment/snapshots"  # 快照存储目录
+backups_dir: "deployment/backups"      # 备份存储目录
+logs_dir: "deployment/logs"            # 日志存储目录
+
+# Docker配置
+docker_compose_file: "deployment/docker/docker-compose.optimized.yml"
+docker_registry: "localhost:5000"  # 私有镜像仓库
+
+# 超时配置
+health_check_timeout: 300  # 健康检查超时（秒）
+rollback_timeout: 600      # 回滚操作超时（秒）
+service_startup_timeout: 120  # 服务启动超时（秒）
+database_restore_timeout: 300  # 数据库恢复超时（秒）
+
+# 服务健康检查配置
+services:
+  yolos-app:
+    health_endpoint: "http://localhost:8000/health"
+    health_path: "/api/v1/health"
+    critical: true
+    startup_time: 30
+    max_retries: 5
+    retry_interval: 10
+    
+  yolos-web:
+    health_endpoint: "http://localhost:8080/"
+    health_path: "/"
+    critical: false
+    startup_time: 15
+    max_retries: 3
+    retry_interval: 5
+    
+  postgres:
+    health_command: "pg_isready -U yolos -d yolos"
+    critical: true
+    startup_time: 20
+    max_retries: 5
+    retry_interval: 5
+    backup_enabled: true
+    backup_command: "pg_dump -U yolos -d yolos"
+    restore_command: "psql -U yolos -d yolos"
+    
+  redis:
+    health_command: "redis-cli ping"
+    critical: true
+    startup_time: 10
+    max_retries: 3
+    retry_interval: 3
+    backup_enabled: true
+    backup_command: "redis-cli --rdb /tmp/dump.rdb"
+    
+  nginx:
+    health_endpoint: "http://localhost:80/health"
+    critical: false
+    startup_time: 5
+    max_retries: 3
+    retry_interval: 2
+    
+  prometheus:
+    health_endpoint: "http://localhost:9090/-/healthy"
+    critical: false
+    startup_time: 15
+    max_retries: 3
+    retry_interval: 5
+    
+  grafana:
+    health_endpoint: "http://localhost:3000/api/health"
+    critical: false
+    startup_time: 20
+    max_retries: 3
+    retry_interval: 5
+
+# 回滚策略配置
+rollback_strategies:
+  # 蓝绿部署
+  blue_green:
+    enabled: true
+    switch_timeout: 60
+    validation_tests: ["health_check", "smoke_test", "integration_test"]
+    
+  # 滚动更新回滚
+  rolling_update:
+    enabled: true
+    batch_size: 1
+    batch_interval: 30
+    max_unavailable: 1
+    
+  # 快速回滚（紧急情况）
+  emergency:
+    enabled: true
+    skip_validation: false
+    notification_required: true
+    approval_required: true
+
+# 数据备份配置
+backup:
+  # 数据库备份
+  database:
+    enabled: true
+    schedule: "0 2 * * *"  # 每天凌晨2点
+    compression: true
+    encryption: false
+    retention_days: 14
+    
+  # 文件系统备份
+  filesystem:
+    enabled: true
+    paths:
+      - "models/"
+      - "config/"
+      - "deployment/docker/volumes/data/"
+      - "logs/"
+    exclude_patterns:
+      - "*.tmp"
+      - "*.log"
+      - "__pycache__/"
+    compression: true
+    retention_days: 7
+    
+  # 配置备份
+  configuration:
+    enabled: true
+    paths:
+      - "deployment/config/"
+      - "src/config/"
+      - "*.yml"
+      - "*.yaml"
+      - "*.json"
+    retention_days: 30
+
+# 监控和告警配置
+monitoring:
+  # 健康检查间隔
+  health_check_interval: 30  # 秒
+  
+  # 性能监控
+  performance_monitoring:
+    enabled: true
+    metrics_retention: 7  # 天
+    alert_thresholds:
+      cpu_usage: 80  # 百分比
+      memory_usage: 85  # 百分比
+      disk_usage: 90  # 百分比
+      response_time: 5000  # 毫秒
+      error_rate: 5  # 百分比
+  
+  # 日志监控
+  log_monitoring:
+    enabled: true
+    log_level: "INFO"
+    error_patterns:
+      - "ERROR"
+      - "CRITICAL"
+      - "FATAL"
+      - "Exception"
+    alert_on_patterns: true
+
+# 通知配置
+notifications:
+  # Webhook通知
+  webhook:
+    enabled: false
+    url: null  # 设置为实际的webhook URL
+    events: ["rollback_start", "rollback_success", "rollback_failure", "snapshot_created"]
+    
+  # 邮件通知
+  email:
+    enabled: false
+    smtp_server: null
+    smtp_port: 587
+    username: null
+    password: null
+    recipients: []
+    
+  # Slack通知
+  slack:
+    enabled: false
+    webhook_url: null
+    channel: "#deployments"
+    username: "YOLOS-Bot"
+
+# 测试配置
+testing:
+  # 烟雾测试
+  smoke_tests:
+    enabled: true
+    timeout: 120
+    tests:
+      - name: "API健康检查"
+        type: "http"
+        url: "http://localhost:8000/health"
+        expected_status: 200
+        
+      - name: "Web界面访问"
+        type: "http"
+        url: "http://localhost:8080/"
+        expected_status: 200
+        
+      - name: "数据库连接"
+        type: "command"
+        command: "pg_isready -U yolos -d yolos"
+        expected_exit_code: 0
+        
+      - name: "Redis连接"
+        type: "command"
+        command: "redis-cli ping"
+        expected_output: "PONG"
+  
+  # 集成测试
+  integration_tests:
+    enabled: true
+    timeout: 300
+    test_suite: "tests/integration/"
+    
+  # 性能测试
+  performance_tests:
+    enabled: false
+    timeout: 600
+    test_suite: "tests/performance/"
+    load_test_duration: 300
+    concurrent_users: 10
+
+# 安全配置
+security:
+  # 访问控制
+  access_control:
+    require_approval: true
+    approvers: ["admin", "devops"]
+    emergency_override: true
+    
+  # 审计日志
+  audit_logging:
+    enabled: true
+    log_file: "deployment/logs/audit.log"
+    log_level: "INFO"
+    
+  # 敏感数据处理
+  sensitive_data:
+    mask_secrets: true
+    encrypt_backups: false
+    secure_delete: true
+
+# 环境特定配置
+environments:
+  development:
+    auto_rollback: true
+    skip_approval: true
+    fast_startup: true
+    debug_mode: true
+    
+  staging:
+    auto_rollback: true
+    skip_approval: false
+    validation_required: true
+    
+  production:
+    auto_rollback: false
+    skip_approval: false
+    validation_required: true
+    approval_required: true
+    notification_required: true
+    
+# 高级配置
+advanced:
+  # 并发控制
+  concurrency:
+    max_concurrent_operations: 1
+    operation_queue_size: 10
+    
+  # 资源限制
+  resource_limits:
+    max_backup_size: "10GB"
+    max_snapshot_size: "5GB"
+    max_log_size: "1GB"
+    
+  # 性能优化
+  performance:
+    parallel_backup: false
+    compression_level: 6
+    io_priority: "normal"
+    
+  # 故障恢复
+  fault_tolerance:
+    retry_failed_operations: true
+    max_retry_attempts: 3
+    retry_backoff: "exponential"
+    partial_failure_handling: "continue"
+
+# 实验性功能
+experimental:
+  # 自动回滚
+  auto_rollback:
+    enabled: false
+    trigger_conditions:
+      - "health_check_failure"
+      - "high_error_rate"
+      - "performance_degradation"
+    cooldown_period: 300  # 秒
+    
+  # 预测性维护
+  predictive_maintenance:
+    enabled: false
+    model_path: "models/maintenance_predictor.pkl"
+    prediction_threshold: 0.8
+    
+  # 智能快照
+  smart_snapshots:
+    enabled: false
+    auto_create_before_deploy: true
+    auto_cleanup_failed_deployments: true
+    adaptive_retention: true

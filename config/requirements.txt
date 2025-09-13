@@ -1,7 +1,8 @@
 # 核心依赖
 torch>=2.0.0
 torchvision>=0.15.0
-opencv-python>=4.8.0
+opencv-python>=4.10.0  # 升级到最新版本以获得更好的性能和兼容性
+opencv-contrib-python>=4.10.0  # 可选：包含额外算法的扩展版本
 numpy>=1.24.0
 Pillow>=10.0.0
 matplotlib>=3.7.0

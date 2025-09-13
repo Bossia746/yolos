@@ -1,0 +1,217 @@
+# 测试环境配置
+# 专门用于自动化测试的配置
+
+# 日志配置
+logging:
+  level: WARNING
+  console:
+    enabled: true
+    level: ERROR
+  file:
+    enabled: false  # 测试环境不需要文件日志
+  format: "%(levelname)s - %(message)s"
+
+# 调试配置
+debug:
+  enabled: false
+  profiling: false
+  memory_tracking: true  # 测试内存泄漏
+  performance_monitoring: false
+  verbose_errors: true
+
+# 测试服务器配置
+server:
+  host: "127.0.0.1"
+  port: 0  # 随机端口
+  debug: false
+  auto_reload: false
+  workers: 1
+  timeout: 10
+
+# 数据库配置（测试环境）
+database:
+  type: "sqlite"
+  path: ":memory:"  # 内存数据库
+  echo: false
+  pool_size: 1
+
+# 缓存配置
+cache:
+  type: "memory"
+  ttl: 60  # 1分钟
+  max_size: 100
+
+# 模型配置（测试环境）
+models:
+  cache_dir: "test_models"
+  download_timeout: 60
+  auto_download: false  # 测试使用mock模型
+  use_gpu: false
+  batch_size: 1
+  precision: "fp32"
+  mock_models: true  # 使用模拟模型
+
+# 插件配置
+plugins:
+  auto_discover: false
+  auto_load: false
+  directories:
+    - "test_plugins"
+  hot_reload: false
+  validation:
+    strict: false
+    allow_dev_plugins: true
+
+# 安全配置（测试环境宽松）
+security:
+  authentication:
+    required: false
+  api_key:
+    required: false
+  cors:
+    enabled: true
+    origins: ["*"]
+  rate_limiting:
+    enabled: false
+
+# 监控配置
+monitoring:
+  metrics:
+    enabled: false
+  health_check:
+    enabled: false
+  alerts:
+    enabled: false
+
+# 测试配置
+testing:
+  mock_external_apis: true
+  test_data_dir: "test_data"
+  coverage:
+    enabled: true
+    min_coverage: 90
+  fixtures:
+    auto_load: true
+    directory: "tests/fixtures"
+  parallel:
+    enabled: true
+    workers: 2
+  timeout:
+    default: 30
+    slow_test: 120
+  retry:
+    enabled: true
+    max_attempts: 3
+    delay: 1
+
+# 性能配置（测试环境）
+performance:
+  max_workers: 1
+  queue_size: 10
+  timeout: 10
+  memory_limit: "512MB"
+  
+# 存储配置
+storage:
+  type: "memory"
+  temp_dir: "test_temp"
+  cleanup_interval: 60
+  auto_cleanup: true
+  
+# API配置
+api:
+  version: "v1"
+  prefix: "/api/v1"
+  docs:
+    enabled: false
+  rate_limit:
+    enabled: false
+    
+# 外部服务配置（测试环境全部mock）
+external_services:
+  openai:
+    enabled: false
+    mock: true
+    mock_responses:
+      default: "This is a mock response"
+  modelscope:
+    enabled: false
+    mock: true
+  cloud_storage:
+    enabled: false
+    mock: true
+
+# Mock配置
+mock:
+  enabled: true
+  strict_mode: false
+  auto_spec: true
+  responses:
+    http_timeout: 5
+    default_status: 200
+  
+# 测试数据配置
+test_data:
+  auto_generate: true
+  seed: 42  # 固定随机种子
+  cleanup_after_test: true
+  sample_images:
+    - "test_data/sample1.jpg"
+    - "test_data/sample2.jpg"
+  sample_videos:
+    - "test_data/sample1.mp4"
+    
+# 断言配置
+assertions:
+  strict_type_checking: true
+  float_tolerance: 0.001
+  image_similarity_threshold: 0.95
+  
+# 报告配置
+reporting:
+  format: "junit"
+  output_dir: "test_reports"
+  include_coverage: true
+  include_performance: true
+  
+# CI/CD配置
+ci:
+  enabled: true
+  fail_fast: false
+  verbose: true
+  parallel_jobs: 2
+  
+# 环境隔离
+isolation:
+  temp_directories: true
+  environment_variables: true
+  network_isolation: false
+  
+# 测试类型配置
+test_types:
+  unit:
+    enabled: true
+    pattern: "test_*.py"
+    timeout: 10
+  integration:
+    enabled: true
+    pattern: "integration_test_*.py"
+    timeout: 60
+  e2e:
+    enabled: false  # 默认关闭端到端测试
+    pattern: "e2e_test_*.py"
+    timeout: 300
+    
+# 内存和资源监控
+resource_monitoring:
+  memory_threshold: "256MB"
+  cpu_threshold: 80
+  disk_threshold: "1GB"
+  network_timeout: 5
+  
+# 测试环境清理
+cleanup:
+  auto_cleanup: true
+  cleanup_on_failure: true
+  preserve_logs_on_failure: true
+  temp_file_retention: 0  # 立即删除

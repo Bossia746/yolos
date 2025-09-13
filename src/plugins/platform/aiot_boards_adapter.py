@@ -285,6 +285,47 @@ class AIoTBoardsAdapter:
                 }
             },
             
+            # ===== Kendryte 系列 =====
+            'k210': {
+                'name': 'Kendryte K210',
+                'manufacturer': 'Kendryte',
+                'cpu': 'RISC-V Dual-core 64-bit @ 400MHz',
+                'gpu': 'None',
+                'memory': '8MB SRAM',
+                'ai_accelerator': 'KPU (0.25 TOPS)',
+                'os_support': ['FreeRTOS', 'RT-Thread', 'MicroPython'],
+                'detection_methods': ['serial_detection', 'usb_vid_pid'],
+                'keywords': ['k210', 'kendryte', 'sipeed', 'maixpy'],
+                'usb_identifiers': [
+                    {'vid': '0403', 'pid': '6001'},  # FTDI
+                    {'vid': '1A86', 'pid': '7523'},  # CH340
+                    {'vid': '10C4', 'pid': 'EA60'}   # CP2102
+                ],
+                'capabilities': {
+                    'deep_learning': True,
+                    'kpu_acceleration': True,
+                    'micropython': True,
+                    'camera_dvp': True,
+                    'gpio': True,
+                    'spi': True,
+                    'i2c': True,
+                    'uart': True,
+                    'low_power': True,
+                    'edge_ai': True,
+                    'real_time': True
+                },
+                'optimization': {
+                    'max_workers': 1,
+                    'memory_limit_mb': 6,
+                    'batch_size': 1,
+                    'image_max_size': (224, 224),
+                    'enable_multiprocessing': False,
+                    'use_kpu': True,
+                    'quantization': 'int8',
+                    'model_format': 'kmodel'
+                }
+            },
+            
             # ===== MediaTek 系列 =====
             'mediatek_genio': {
                 'name': 'MediaTek Genio Platform',
@@ -663,6 +704,13 @@ class AIoTBoardsAdapter:
             if 'stm32_ai_detection' in board_info.get('detection_methods', []):
                 confidence += self._check_stm32_info() * 0.8  # STM32 AI生态系统检测
             
+            # K210检测方法
+            if 'serial_detection' in board_info.get('detection_methods', []):
+                confidence += self._check_k210_serial()
+            
+            if 'usb_vid_pid' in board_info.get('detection_methods', []):
+                confidence += self._check_k210_usb(board_info)
+            
         except Exception as e:
             logger.warning(f"开发板检测异常: {e}")
         
@@ -761,6 +809,126 @@ class AIoTBoardsAdapter:
         except Exception:
             return 0.0
     
+    def _check_k210_serial(self) -> float:
+        """检查K210串口连接"""
+        try:
+            import serial.tools.list_ports
+            
+            ports = serial.tools.list_ports.comports()
+            k210_indicators = [
+                'k210', 'kendryte', 'sipeed', 'maixpy',
+                'ch340', 'ch341', 'ftdi', 'cp210'
+            ]
+            
+            for port in ports:
+                port_desc = port.description.lower()
+                port_hwid = port.hwid.lower()
+                
+                # 检查描述中的K210相关关键词
+                for indicator in k210_indicators:
+                    if indicator in port_desc or indicator in port_hwid:
+                        return 0.7
+                
+                # 检查常见的K210开发板串口芯片
+                if any(chip in port_desc for chip in ['ch340', 'ch341', 'ftdi', 'cp210']):
+                    # 尝试串口通信验证
+                    if self._verify_k210_serial(port.device):
+                        return 0.8
+            
+            return 0.0
+            
+        except ImportError:
+            logger.warning("pyserial未安装，无法检测K210串口")
+            return 0.0
+        except Exception as e:
+            logger.debug(f"K210串口检测失败: {e}")
+            return 0.0
+    
+    def _check_k210_usb(self, board_info: Dict[str, Any]) -> float:
+        """检查K210 USB设备"""
+        try:
+            usb_identifiers = board_info.get('usb_identifiers', [])
+            
+            # Windows系统使用wmic命令
+            if platform.system() == 'Windows':
+                try:
+                    result = subprocess.run(
+                        ['wmic', 'path', 'win32_pnpentity', 'get', 'deviceid'],
+                        capture_output=True, text=True, timeout=10
+                    )
+                    
+                    for identifier in usb_identifiers:
+                        vid = identifier['vid'].upper()
+                        pid = identifier['pid'].upper()
+                        usb_id = f"VID_{vid}&PID_{pid}"
+                        
+                        if usb_id in result.stdout.upper():
+                            return 0.6
+                    
+                except Exception:
+                    pass
+            
+            # Linux/macOS系统使用lsusb
+            else:
+                try:
+                    result = subprocess.run(['lsusb'], capture_output=True, text=True, timeout=5)
+                    
+                    for identifier in usb_identifiers:
+                        vid = identifier['vid']
+                        pid = identifier['pid']
+                        usb_pattern = f"{vid}:{pid}"
+                        
+                        if usb_pattern in result.stdout:
+                            return 0.6
+                    
+                except Exception:
+                    pass
+            
+            return 0.0
+            
+        except Exception as e:
+            logger.debug(f"K210 USB检测失败: {e}")
+            return 0.0
+    
+    def _verify_k210_serial(self, port: str) -> bool:
+        """验证K210串口通信"""
+        try:
+            import serial
+            
+            # 尝试打开串口
+            with serial.Serial(port, 115200, timeout=1) as ser:
+                # 发送简单的测试命令
+                test_commands = [
+                    b'\r\n',  # 回车换行
+                    b'help\r\n',  # help命令
+                    b'print("test")\r\n'  # MicroPython测试
+                ]
+                
+                for cmd in test_commands:
+                    ser.write(cmd)
+                    time.sleep(0.1)
+                    
+                    # 读取响应
+                    response = ser.read(ser.in_waiting or 64)
+                    if response:
+                        response_str = response.decode('utf-8', errors='ignore').lower()
+                        
+                        # 检查K210相关的响应
+                        k210_responses = [
+                            'micropython', 'maixpy', 'k210', 'kendryte',
+                            'repl', '>>>', 'help', 'test'
+                        ]
+                        
+                        for resp in k210_responses:
+                            if resp in response_str:
+                                return True
+                
+                return False
+                
+        except Exception as e:
+            logger.debug(f"K210串口验证失败 {port}: {e}")
+            return False
+    
     def _get_detection_method(self, board_info: Dict[str, Any]) -> str:
         """获取检测方法"""
         methods = board_info.get('detection_methods', [])
@@ -824,8 +992,15 @@ class AIoTBoardsAdapter:
             config['use_gpu'] = True
         
         # AI加速器
-        if any(capabilities.get(key, False) for key in ['edge_tpu', 'npu_acceleration', 'hexagon_dsp', 'apu_acceleration']):
+        if any(capabilities.get(key, False) for key in ['edge_tpu', 'npu_acceleration', 'hexagon_dsp', 'apu_acceleration', 'kpu']):
             config['use_ai_accelerator'] = True
+        
+        # K210特定优化
+        if capabilities.get('kpu', False):
+            config['memory_limit_gb'] = 0.5  # K210内存限制
+            config['max_workers'] = 1  # 单核处理
+            config['image_max_size'] = (224, 224)  # KPU最佳输入尺寸
+            config['batch_size'] = 1  # 不支持批处理
         
         return config
     
@@ -870,6 +1045,13 @@ class AIoTBoardsAdapter:
             config['frameworks'].extend(['openvino'])
             if not config['preferred_accelerator']:
                 config['preferred_accelerator'] = 'movidius'
+        
+        # K210 KPU (Kendryte)
+        if capabilities.get('kpu', False):
+            config['available_accelerators'].append('kpu')
+            config['frameworks'].extend(['nncase', 'kendryte_standalone_sdk'])
+            if not config['preferred_accelerator']:
+                config['preferred_accelerator'] = 'kpu'
         
         return config
     

@@ -1,5 +1,47 @@
 """YOLOS 核心模块"""
 
+# 类型定义
+from .types import (
+    TaskType,
+    ObjectType,
+    Status,
+    Priority,
+    BoundingBox,
+    DetectionResult,
+    ProcessingResult,
+    Point2D,
+    Keypoint,
+    ImageInfo,
+    create_detection_result,
+    merge_results
+)
+
+# 异常处理
+from .exceptions import (
+    ErrorCode,
+    YOLOSException,
+    SystemException,
+    ModelException,
+    DataException,
+    ImageException,
+    DetectionException,
+    HardwareException,
+    APIException,
+    PlatformException,
+    ConfigurationError,
+    ExceptionHandler,
+    exception_handler
+)
+
+# 日志记录
+from .logger import (
+    get_logger,
+    configure_logging,
+    YOLOSLogger,
+    log_function_call,
+    log_class_methods
+)
+
 from .plugin_manager import (
     PluginManager,
     PluginDependencyError,
@@ -35,6 +77,42 @@ from .base_plugin import BasePlugin
 from .cross_platform_manager import CrossPlatformManager, get_cross_platform_manager
 
 __all__ = [
+    # 类型定义
+    'TaskType',
+    'ObjectType',
+    'Status',
+    'Priority',
+    'BoundingBox',
+    'DetectionResult',
+    'ProcessingResult',
+    'Point2D',
+    'Keypoint',
+    'ImageInfo',
+    'create_detection_result',
+    'merge_results',
+    
+    # 异常处理
+    'ErrorCode',
+    'YOLOSException',
+    'SystemException',
+    'ModelException',
+    'DataException',
+    'ImageException',
+    'DetectionException',
+    'HardwareException',
+    'APIException',
+    'PlatformException',
+    'ConfigurationError',
+    'ExceptionHandler',
+    'exception_handler',
+    
+    # 日志记录
+    'get_logger',
+    'configure_logging',
+    'YOLOSLogger',
+    'log_function_call',
+    'log_class_methods',
+    
     # 插件管理
     'PluginManager',
     'PluginDependencyError',

@@ -4,14 +4,23 @@ import os
 import sys
 import importlib
 import importlib.util
-from typing import Dict, List, Optional, Type, Any
-import logging
+import inspect
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Any, Callable, Type
 import threading
+import logging
 from collections import defaultdict, deque
+from dataclasses import asdict
+import time
 
 from .base_plugin import BasePlugin, PluginStatus, PluginCapability
 from .event_bus import EventBus
+from .plugin_loader import PluginLoader, PluginLoadError, PluginValidationError
+from .plugin_interface import (
+    PluginType, PluginPriority, PluginConfig, IPluginRegistry, 
+    IPluginCommunication, IPluginValidator, IPluginMonitor,
+    PLUGIN_EVENTS, PLUGIN_HOOKS
+)
 
 
 class PluginDependencyError(Exception):
@@ -24,25 +33,45 @@ class PluginLoadError(Exception):
     pass
 
 
-class PluginManager:
+class PluginManager(IPluginRegistry, IPluginCommunication, IPluginMonitor):
     """插件管理器
     
     负责插件的发现、加载、管理和卸载
+    实现插件注册、通信和监控接口
     """
     
-    def __init__(self, config: Dict = None, event_bus: EventBus = None):
+    def __init__(self, config: Dict = None, event_bus: EventBus = None, validator: IPluginValidator = None):
         self.config = config or {}
-        self.event_bus = event_bus
+        self.event_bus = event_bus or EventBus()
         self.logger = logging.getLogger(self.__class__.__name__)
         
         # 插件存储
         self._plugins: Dict[str, BasePlugin] = {}
         self._plugin_classes: Dict[str, Type[BasePlugin]] = {}
         self._plugin_paths: Dict[str, str] = {}
+        self.plugin_configs: Dict[str, PluginConfig] = {}
         
         # 依赖关系
         self._dependencies: Dict[str, List[str]] = {}
         self._dependents: Dict[str, List[str]] = defaultdict(list)
+        
+        # 插件加载器
+        self.loader = PluginLoader(
+            plugin_directories=self.config.get('plugin_directories', [
+                'src/plugins',
+                'plugins',
+                'src/recognition',  # 兼容现有结构
+            ]),
+            validator=validator
+        )
+        
+        # 服务注册
+        self._services: Dict[str, Any] = {}
+        self._hooks: Dict[str, List[Callable]] = {}
+        
+        # 插件监控
+        self._plugin_metrics: Dict[str, Dict[str, Any]] = {}
+        self._monitoring_enabled: Dict[str, bool] = {}
         
         # 线程安全
         self._lock = threading.RLock()
@@ -56,6 +85,15 @@ class PluginManager:
         
         # 系统信息缓存
         self._system_info = None
+        
+        # 初始化钩子点
+        self._initialize_hooks()
+    
+    def _initialize_hooks(self):
+        """初始化钩子点"""
+        for category, hooks in PLUGIN_HOOKS.items():
+            for hook in hooks:
+                self._hooks[hook] = []
     
     def discover_plugins(self) -> List[str]:
         """发现可用插件
@@ -65,27 +103,56 @@ class PluginManager:
         """
         discovered = []
         
-        for plugin_dir in self.plugin_directories:
-            plugin_path = Path(plugin_dir)
-            if not plugin_path.exists():
-                continue
+        try:
+            # 使用新的插件加载器发现插件
+            plugins_info = self.loader.discover_plugins()
             
-            self.logger.info(f"Scanning plugin directory: {plugin_path}")
+            for plugin_name, plugin_info in plugins_info.items():
+                discovered.append(plugin_name)
+                
+                # 存储插件类和路径
+                self._plugin_classes[plugin_name] = plugin_info['class']
+                self._plugin_paths[plugin_name] = plugin_info['path']
+                
+                # 加载插件配置
+                config_path = plugin_info.get('config_path')
+                if config_path:
+                    try:
+                        config_data = self.loader._load_plugin_config(config_path)
+                        self.plugin_configs[plugin_name] = PluginConfig(**config_data)
+                    except Exception as e:
+                        self.logger.warning(f"Failed to load config for {plugin_name}: {e}")
+                        self.plugin_configs[plugin_name] = PluginConfig()
+                else:
+                    self.plugin_configs[plugin_name] = PluginConfig()
+                
+                self.logger.debug(f"Discovered plugin: {plugin_name}")
             
-            # 扫描Python文件
-            for py_file in plugin_path.rglob('*.py'):
-                if py_file.name.startswith('_'):
+            self.logger.info(f"Discovered {len(discovered)} plugins")
+            
+        except Exception as e:
+            self.logger.error(f"Error discovering plugins: {e}")
+            # 回退到原有方法
+            for plugin_dir in self.plugin_directories:
+                plugin_path = Path(plugin_dir)
+                if not plugin_path.exists():
                     continue
                 
-                try:
-                    plugin_name = self._load_plugin_class(py_file)
-                    if plugin_name:
-                        discovered.append(plugin_name)
-                        self.logger.debug(f"Discovered plugin: {plugin_name}")
-                except Exception as e:
-                    self.logger.warning(f"Failed to load plugin from {py_file}: {e}")
+                self.logger.info(f"Scanning plugin directory: {plugin_path}")
+                
+                # 扫描Python文件
+                for py_file in plugin_path.rglob('*.py'):
+                    if py_file.name.startswith('_'):
+                        continue
+                    
+                    try:
+                        plugin_name = self._load_plugin_class(py_file)
+                        if plugin_name:
+                            discovered.append(plugin_name)
+                            self.logger.debug(f"Discovered plugin: {plugin_name}")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to load plugin from {py_file}: {e}")
         
-        self.logger.info(f"Discovered {len(discovered)} plugins")
         return discovered
     
     def _load_plugin_class(self, plugin_file: Path) -> Optional[str]:
@@ -459,13 +526,182 @@ class PluginManager:
         
         self.logger.info(f"Loaded {len(loaded)} plugins: {list(loaded)}")
     
+    # IPluginRegistry 接口实现
+    def register_service(self, name: str, service: Any) -> bool:
+        """注册服务"""
+        with self._lock:
+            if name in self._services:
+                self.logger.warning(f"Service {name} already registered")
+                return False
+            self._services[name] = service
+            return True
+    
+    def unregister_service(self, name: str) -> bool:
+        """注销服务"""
+        with self._lock:
+            if name in self._services:
+                del self._services[name]
+                return True
+            return False
+    
+    def get_service(self, name: str) -> Optional[Any]:
+        """获取服务"""
+        return self._services.get(name)
+    
+    def list_services(self) -> List[str]:
+        """列出所有服务"""
+        return list(self._services.keys())
+    
+    # IPluginCommunication 接口实现
+    def register_hook(self, hook_name: str, callback: Callable) -> bool:
+        """注册钩子"""
+        with self._lock:
+            if hook_name not in self._hooks:
+                self._hooks[hook_name] = []
+            self._hooks[hook_name].append(callback)
+            return True
+    
+    def unregister_hook(self, hook_name: str, callback: Callable) -> bool:
+        """注销钩子"""
+        with self._lock:
+            if hook_name in self._hooks:
+                try:
+                    self._hooks[hook_name].remove(callback)
+                    return True
+                except ValueError:
+                    pass
+            return False
+    
+    def execute_hook(self, hook_name: str, *args, **kwargs) -> List[Any]:
+        """执行钩子"""
+        results = []
+        if hook_name in self._hooks:
+            for callback in self._hooks[hook_name]:
+                try:
+                    result = callback(*args, **kwargs)
+                    results.append(result)
+                except Exception as e:
+                    self.logger.error(f"Error executing hook {hook_name}: {e}")
+        return results
+    
+    def send_message(self, target_plugin: str, message: Dict[str, Any]) -> bool:
+        """发送消息给插件"""
+        plugin = self.get_plugin(target_plugin)
+        if plugin and hasattr(plugin, 'receive_message'):
+            try:
+                plugin.receive_message(message)
+                return True
+            except Exception as e:
+                self.logger.error(f"Error sending message to {target_plugin}: {e}")
+        return False
+    
+    def broadcast_message(self, message: Dict[str, Any], plugin_filter: Optional[Callable] = None) -> int:
+        """广播消息"""
+        count = 0
+        for plugin_name, plugin in self._plugins.items():
+            if plugin_filter and not plugin_filter(plugin):
+                continue
+            if hasattr(plugin, 'receive_message'):
+                try:
+                    plugin.receive_message(message)
+                    count += 1
+                except Exception as e:
+                    self.logger.error(f"Error broadcasting message to {plugin_name}: {e}")
+        return count
+    
+    # IPluginMonitor 接口实现
+    def start_monitoring(self, plugin_name: str) -> bool:
+        """开始监控插件"""
+        with self._lock:
+            if plugin_name in self._plugins:
+                self._monitoring_enabled[plugin_name] = True
+                self._plugin_metrics[plugin_name] = {
+                    'start_time': time.time(),
+                    'call_count': 0,
+                    'error_count': 0,
+                    'last_activity': time.time()
+                }
+                return True
+            return False
+    
+    def stop_monitoring(self, plugin_name: str) -> bool:
+        """停止监控插件"""
+        with self._lock:
+            if plugin_name in self._monitoring_enabled:
+                self._monitoring_enabled[plugin_name] = False
+                return True
+            return False
+    
+    def get_plugin_metrics(self, plugin_name: str) -> Optional[Dict[str, Any]]:
+        """获取插件指标"""
+        return self._plugin_metrics.get(plugin_name)
+    
+    def get_all_metrics(self) -> Dict[str, Dict[str, Any]]:
+        """获取所有插件指标"""
+        return self._plugin_metrics.copy()
+    
+    def is_plugin_healthy(self, plugin_name: str) -> bool:
+        """检查插件健康状态"""
+        plugin = self.get_plugin(plugin_name)
+        if not plugin:
+            return False
+        
+        # 检查插件状态
+        if plugin.get_status() != PluginStatus.LOADED:
+            return False
+        
+        # 检查最近活动
+        metrics = self.get_plugin_metrics(plugin_name)
+        if metrics:
+            last_activity = metrics.get('last_activity', 0)
+            if time.time() - last_activity > 300:  # 5分钟无活动
+                return False
+        
+        return True
+    
+    def get_system_metrics(self) -> Dict[str, Any]:
+        """获取系统指标"""
+        import psutil
+        return {
+            'cpu_percent': psutil.cpu_percent(),
+            'memory_percent': psutil.virtual_memory().percent,
+            'disk_usage': psutil.disk_usage('/').percent if hasattr(psutil.disk_usage('/'), 'percent') else 0,
+            'plugin_count': len(self._plugins),
+            'active_plugins': len([p for p in self._plugins.values() if p.get_status() == PluginStatus.LOADED])
+        }
+    
+    def publish_event(self, event_type: str, data: Any = None) -> bool:
+        """发布事件"""
+        try:
+            self.event_bus.emit(event_type, data)
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to publish event {event_type}: {e}")
+            return False
+    
+    def subscribe_event(self, event_type: str, handler: Callable) -> str:
+        """订阅事件"""
+        try:
+            return self.event_bus.on(event_type, handler)
+        except Exception as e:
+            self.logger.error(f"Failed to subscribe to event {event_type}: {e}")
+            return ""
+    
     def shutdown(self) -> None:
         """关闭插件管理器"""
         self.logger.info("Shutting down plugin manager")
+        
+        # 停止所有监控
+        for plugin_name in list(self._monitoring_enabled.keys()):
+            self.stop_monitoring(plugin_name)
         
         # 卸载所有插件
         plugin_names = list(self._plugins.keys())
         for plugin_name in plugin_names:
             self.unload_plugin(plugin_name, force=True)
+        
+        # 清理服务和钩子
+        self._services.clear()
+        self._hooks.clear()
         
         self.logger.info("Plugin manager shutdown complete")

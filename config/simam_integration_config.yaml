@@ -1,0 +1,179 @@
+# SimAM注意力机制集成配置
+# 基于YOLO-APD架构优化的SimAM配置
+
+# SimAM注意力机制配置
+simam_attention:
+  enabled: true
+  
+  # 基础配置
+  lambda_param: 1e-4  # SimAM能量函数参数
+  eps: 1e-8          # 数值稳定性参数
+  
+  # 集成位置配置
+  integration_points:
+    backbone:
+      enabled: true
+      layers: [3, 6, 9, 12]  # 在backbone的指定层集成
+      position: "after_conv"   # 在卷积层之后集成
+    
+    neck:
+      enabled: true
+      fpn_levels: ["P3", "P4", "P5"]  # 在FPN的指定层级集成
+      position: "before_fusion"        # 在特征融合之前集成
+    
+    head:
+      enabled: false  # 检测头暂不集成，避免影响最终输出
+  
+  # 性能优化配置
+  optimization:
+    use_inplace: true      # 使用原地操作减少内存占用
+    fuse_operations: true  # 融合相关操作提升速度
+    gradient_checkpointing: false  # 梯度检查点（训练时使用）
+
+# 模型配置更新
+model_updates:
+  # YOLOv11模型配置
+  yolov11:
+    # 替换现有注意力机制
+    replace_attention:
+      c2psa_to_simam: true    # 将C2PSA替换为SimAM
+      cbam_to_simam: false    # 保留CBAM作为对比
+    
+    # 新增SimAM层配置
+    simam_layers:
+      - name: "backbone_simam_1"
+        position: "after_c2f_3"
+        channels: 128
+      - name: "backbone_simam_2"
+        position: "after_c2f_6"
+        channels: 256
+      - name: "backbone_simam_3"
+        position: "after_c2f_9"
+        channels: 512
+      - name: "neck_simam_p3"
+        position: "fpn_p3_output"
+        channels: 256
+      - name: "neck_simam_p4"
+        position: "fpn_p4_output"
+        channels: 256
+      - name: "neck_simam_p5"
+        position: "fpn_p5_output"
+        channels: 256
+
+# 平台特定配置
+platform_configs:
+  # PC平台配置
+  pc:
+    simam_enabled: true
+    full_precision: true
+    batch_processing: true
+  
+  # 树莓派配置
+  raspberry_pi:
+    simam_enabled: true
+    half_precision: true    # 使用FP16减少计算量
+    selective_layers: [3, 6]  # 只在关键层使用SimAM
+  
+  # Jetson配置
+  jetson_nano:
+    simam_enabled: true
+    tensorrt_optimization: true
+    cuda_optimization: true
+  
+  # ESP32配置
+  esp32:
+    simam_enabled: false    # ESP32资源受限，暂不启用
+    fallback_attention: "se"  # 使用更轻量的SE注意力
+
+# 性能基准配置
+benchmark:
+  enabled: true
+  
+  # 对比测试配置
+  comparison_tests:
+    baseline_model: "yolov11s_original"  # 原始模型作为基准
+    simam_model: "yolov11s_simam"        # 集成SimAM的模型
+    
+  # 测试指标
+  metrics:
+    - "inference_time"     # 推理时间
+    - "memory_usage"       # 内存使用
+    - "accuracy_map"       # 检测精度mAP
+    - "fps_performance"    # FPS性能
+    - "parameter_count"    # 参数数量
+  
+  # 测试数据集
+  test_datasets:
+    - "coco_val2017_subset"  # COCO验证集子集
+    - "custom_test_images"   # 项目自定义测试图像
+
+# 训练配置（如需重新训练）
+training:
+  enabled: false  # 默认使用预训练模型
+  
+  # 微调配置
+  fine_tuning:
+    enabled: true
+    learning_rate: 1e-4
+    epochs: 10
+    freeze_backbone: true   # 冻结backbone，只训练新增的SimAM层
+    
+  # 数据增强
+  augmentation:
+    mosaic: 0.5
+    mixup: 0.1
+    copy_paste: 0.1
+
+# 部署配置
+deployment:
+  # 模型导出配置
+  export:
+    formats: ["onnx", "tensorrt", "openvino"]
+    optimize_for_inference: true
+    
+  # 量化配置
+  quantization:
+    enabled: true
+    method: "post_training"  # 训练后量化
+    calibration_dataset: "coco_subset"
+    
+  # 嵌入式部署
+  embedded:
+    raspberry_pi:
+      model_format: "onnx"
+      precision: "fp16"
+      optimization_level: "high"
+    
+    jetson_nano:
+      model_format: "tensorrt"
+      precision: "fp16"
+      dla_enabled: true
+
+# 监控和日志配置
+monitoring:
+  performance_logging: true
+  memory_profiling: true
+  
+  # 告警配置
+  alerts:
+    inference_time_threshold: 50  # ms
+    memory_usage_threshold: 80    # %
+    accuracy_drop_threshold: 2    # %
+
+# 实验配置
+experiments:
+  # A/B测试配置
+  ab_testing:
+    enabled: true
+    traffic_split: 0.5  # 50%流量使用SimAM模型
+    
+  # 渐进式部署
+  gradual_rollout:
+    enabled: true
+    stages:
+      - percentage: 10
+        duration_hours: 24
+      - percentage: 50
+        duration_hours: 48
+      - percentage: 100
+        duration_hours: 72

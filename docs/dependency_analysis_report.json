@@ -1,10 +1,10 @@
 {
   "project_summary": {
-    "total_modules": 140,
-    "total_dependencies": 41,
+    "total_modules": 228,
+    "total_dependencies": 90,
     "circular_dependencies": 0,
     "redundancy_issues": 4,
-    "complexity_issues": 122
+    "complexity_issues": 188
   },
   "circular_dependencies": [],
   "redundant_modules": [
@@ -14,25 +14,44 @@
         "basic_pet_recognition_gui",
         "tests.simple_multimodal_gui_test",
         "tests.test_gui_multimodal",
+        "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+        "src.gui.gui_manager",
+        "src.gui.hybrid_stable_gui",
         "src.gui.main_gui",
-        "src.gui.yolos_training_gui"
+        "src.gui.simple_yolos_gui",
+        "src.gui.stable_yolos_gui",
+        "src.gui.yolos_training_gui",
+        "src.gui.versions.advanced_training_gui_v1",
+        "src.gui.versions.main_gui_v1",
+        "src.gui.versions.simple_yolos_gui_v1",
+        "src.gui.versions.yolos_training_gui_v1"
       ],
       "recommendation": "考虑合并相似的GUI模块"
     },
     {
       "type": "excessive_detector_modules",
       "data": [
+        "handheld_object_recognition_test",
         "examples.basic_detection",
         "examples.mqtt_detection",
         "examples.realtime_detection",
+        "scripts.detection_accuracy_optimizer",
+        "scripts.test_yolos_detection_capability",
+        "src.detector",
+        "tests.visual_recognition_test",
         "esp32.yolos_esp32_cam.esp32_recognition_adapter",
         "ros_workspace.src.yolos_ros.scripts.detection_node",
         "src.detection.camera_detector",
         "src.detection.cli",
+        "src.detection.enhanced_realtime_detector",
+        "src.detection.factory",
         "src.detection.image_detector",
         "src.detection.realtime_detector",
         "src.detection.video_detector",
         "src.detection.__init__",
+        "src.models.base_detector_interface",
+        "src.models.enhanced_yolov11_detector",
+        "src.models.yolov11_detector",
         "src.recognition.anti_spoofing_detector",
         "src.recognition.emergency_response_system",
         "src.recognition.enhanced_face_recognizer",
@@ -42,6 +61,7 @@
         "src.recognition.enhanced_pet_recognizer",
         "src.recognition.enhanced_scene_analyzer",
         "src.recognition.face_recognizer",
+        "src.recognition.factory",
         "src.recognition.fall_detector",
         "src.recognition.gesture_recognizer",
         "src.recognition.hybrid_recognition_system",
@@ -51,8 +71,10 @@
         "src.recognition.intelligent_multi_target_system",
         "src.recognition.intelligent_recognition_system",
         "src.recognition.llm_self_learning_system",
+        "src.recognition.local_llm_service",
         "src.recognition.medical_facial_analyzer",
         "src.recognition.medication_recognition_system",
+        "src.recognition.modelscope_llm_service",
         "src.recognition.multimodal_detector",
         "src.recognition.object_recognizer",
         "src.recognition.optimized_face_recognizer",
@@ -78,11 +100,76 @@
       "data": {
         "BasicPetRecognitionGUI": [
           "basic_pet_recognition_gui",
-          "src.gui.main_gui"
+          "src.gui.main_gui",
+          "src.gui.versions.main_gui_v1"
+        ],
+        "TestConfig": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "tests.base_test",
+          "tests.test_config"
+        ],
+        "DetectionStats": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "HandheldObjectRecognitionTest": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "YOLODetector": [
+          "handheld_test_fixed",
+          "src.detector"
+        ],
+        "DetectionResult": [
+          "examples.yolo_optimization_integration",
+          "src.core.engine",
+          "src.core.types",
+          "src.models.yolo_optimized_core",
+          "src.recognition.optimized_multimodal_detector"
+        ],
+        "YOLOSCapabilityDemo": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
+        ],
+        "OptimizationConfig": [
+          "scripts.detection_accuracy_optimizer",
+          "src.models.optimized_yolov11_system"
+        ],
+        "YOLOv11Detector": [
+          "scripts.yolov11_integration",
+          "src.models.yolov11_detector"
+        ],
+        "MockDataGenerator": [
+          "tests.base_test",
+          "tests.mock_data"
         ],
         "PerformanceMetrics": [
           "tests.performance_test",
           "src.utils.metrics"
+        ],
+        "MinimalYOLOS": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "PlaceholderClass": [
+          "deployments.esp32.src.models.yolo_micro",
+          "deployments.esp32.src.utils.esp32_utils",
+          "deployments.k230.src.models.yolo_k230",
+          "deployments.k230.src.utils.k230_utils",
+          "deployments.raspberry_pi.src.models.yolo_lite",
+          "deployments.raspberry_pi.src.utils.rpi_utils"
+        ],
+        "SimpleYOLOSGUI": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "TaskType": [
+          "src.api.external_api_system",
+          "src.core.types"
         ],
         "RecognitionTask": [
           "src.api.external_api_system",
@@ -90,10 +177,12 @@
         ],
         "CameraConfig": [
           "src.core.config",
+          "src.core.types",
           "src.recognition.usb_medical_camera_system"
         ],
         "TrainingConfig": [
           "src.core.config",
+          "src.core.types",
           "src.training.enhanced_human_trainer"
         ],
         "YOLOSConfig": [
@@ -105,12 +194,9 @@
           "src.utils.config_manager",
           "src.utils.file_utils"
         ],
-        "DetectionResult": [
-          "src.core.engine",
-          "src.recognition.optimized_multimodal_detector"
-        ],
         "RecognitionResult": [
           "src.core.engine",
+          "src.core.types",
           "src.recognition.improved_multimodal_detector",
           "src.recognition.integrated_self_learning_recognition",
           "src.recognition.intelligent_recognition_system",
@@ -120,17 +206,58 @@
           "src.core.logger",
           "src.utils.logging_manager"
         ],
+        "PerformanceMonitor": [
+          "src.core.performance_monitor",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.yolo_benchmark_system"
+        ],
+        "ObjectType": [
+          "src.core.types",
+          "src.plugins.domain.static_object_recognition"
+        ],
+        "ModelConfig": [
+          "src.core.types",
+          "src.core.unified_config_manager"
+        ],
+        "StableYOLOSDetector": [
+          "src.gui.hybrid_stable_gui",
+          "src.gui.stable_yolos_gui"
+        ],
+        "YOLOSMainGUI": [
+          "src.gui.main_gui",
+          "src.gui.versions.main_gui_v1"
+        ],
         "YOLOSTrainingGUI": [
           "src.gui.main_gui",
-          "src.gui.yolos_training_gui"
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "VideoCapture": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "TrainingDataCollector": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "DatasetManager": [
           "src.gui.yolos_training_gui",
-          "src.training.dataset_manager"
+          "src.training.dataset_manager",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "YOLOSTrainer": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "OfflineTrainingManager": [
           "src.gui.yolos_training_gui",
-          "src.training.offline_training_manager"
+          "src.training.offline_training_manager",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "YOLOSDetector": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "ShapeDetector": [
           "src.recognition.enhanced_object_recognizer",
@@ -184,6 +311,10 @@
           "src.recognition.image_quality_enhancer",
           "src.recognition.image_quality_enhancer"
         ],
+        "ProcessingTask": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
         "ObjectCategory": [
           "src.recognition.priority_recognition_system",
           "src.plugins.domain.static_object_recognition"
@@ -195,18 +326,41 @@
       "data": {
         "main": [
           "basic_pet_recognition_gui",
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "k230_handheld_object_test",
+          "local_handheld_test",
+          "main",
+          "organize_project",
+          "run_handheld_test",
           "examples.api_usage_examples",
           "examples.basic_detection",
           "examples.mqtt_detection",
           "examples.realtime_detection",
           "examples.windows_multimodal_debug",
+          "examples.yolo_evolution_visualizer",
+          "examples.yolo_optimization_integration",
+          "examples.yolo_performance_comparison",
           "scripts.analyze_dependencies",
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.demo_github_enhancements",
           "scripts.download_training_datasets",
+          "scripts.fixed_yolos_capability_demo",
+          "scripts.focused_dependency_check",
           "scripts.install",
           "scripts.quick_start_enhanced_training",
           "scripts.setup_hybrid_system",
+          "scripts.simple_capability_test",
+          "scripts.simple_dependency_check",
+          "scripts.start_yolov11_optimized",
+          "scripts.test_yolos_detection_capability",
+          "scripts.test_yolov11_upgrade",
           "scripts.train_offline_models",
+          "scripts.yolov11_deep_optimization",
           "tests.comprehensive_scenario_testing",
+          "tests.comprehensive_test_suite",
+          "tests.comprehensive_vision_test",
           "tests.real_world_validation",
           "tests.simple_multimodal_gui_test",
           "tests.standalone_scenario_validator",
@@ -214,32 +368,93 @@
           "tests.test_aiot_standalone",
           "tests.test_gui_multimodal",
           "tests.test_headless_multimodal",
+          "tests.test_modelscope_service",
           "tests.test_multi_target_priority_system",
           "tests.test_opencv_display",
           "tests.test_optimized_multimodal",
           "tests.test_quality_and_spoofing",
           "tests.test_self_learning_system",
+          "tests.test_simple_modelscope",
+          "tests.visual_recognition_test",
+          "deployments.esp32.main",
+          "deployments.k230.main",
+          "deployments.raspberry_pi.main",
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.esp32.src.models.yolo_micro",
+          "deployments.esp32.src.utils.esp32_utils",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.k230.src.models.yolo_k230",
+          "deployments.k230.src.utils.k230_utils",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "deployments.raspberry_pi.src.models.yolo_lite",
+          "deployments.raspberry_pi.src.utils.rpi_utils",
           "esp32.yolos_esp32_cam.esp32_recognition_adapter",
           "ros_workspace.src.yolos_ros.scripts.detection_node",
           "src.api.external_api_system",
+          "src.core.minimal_yolos",
+          "src.core.yolos_cli",
+          "src.deployment.deployment_generator",
           "src.detection.cli",
+          "src.gui.gui_manager",
+          "src.gui.hybrid_stable_gui",
           "src.gui.main_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.stable_yolos_gui",
           "src.gui.yolos_training_gui",
+          "src.models.yolo_optimized_core",
           "src.recognition.usb_medical_camera_system",
           "src.ui.accessibility_manager",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
           "src.plugins.platform.raspberry_pi_adapter",
           "src.plugins.platform.ros_integration"
         ],
         "__init__": [
           "basic_pet_recognition_gui",
           "basic_pet_recognition_gui",
+          "handheld_object_demo",
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "handheld_test_fixed",
+          "k230_handheld_object_test",
+          "local_handheld_test",
+          "organize_project",
           "examples.mqtt_detection",
+          "examples.yolo_evolution_visualizer",
+          "examples.yolo_optimization_integration",
+          "examples.yolo_optimization_integration",
+          "examples.yolo_optimization_integration",
+          "examples.yolo_performance_comparison",
           "scripts.analyze_dependencies",
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.demo_github_enhancements",
+          "scripts.demo_github_enhancements",
+          "scripts.demo_github_enhancements",
+          "scripts.demo_github_enhancements",
+          "scripts.detection_accuracy_optimizer",
           "scripts.download_training_datasets",
+          "scripts.fixed_yolos_capability_demo",
+          "scripts.focused_dependency_check",
           "scripts.install",
+          "scripts.performance_enhancer",
           "scripts.quick_start_enhanced_training",
           "scripts.setup_hybrid_system",
+          "scripts.simple_dependency_check",
+          "scripts.test_yolos_detection_capability",
+          "scripts.yolov11_deep_optimization",
+          "scripts.yolov11_integration",
+          "src.detector",
+          "tests.base_test",
+          "tests.base_test",
           "tests.comprehensive_scenario_testing",
+          "tests.comprehensive_test_suite",
+          "tests.comprehensive_vision_test",
+          "tests.comprehensive_vision_test",
+          "tests.comprehensive_vision_test",
           "tests.integration_test",
           "tests.integration_test",
           "tests.integration_test",
@@ -253,6 +468,7 @@
           "tests.performance_test",
           "tests.performance_test",
           "tests.real_world_validation",
+          "tests.real_yolo_test",
           "tests.simple_multimodal_gui_test",
           "tests.standalone_scenario_validator",
           "tests.test_config",
@@ -261,6 +477,19 @@
           "tests.test_multi_target_priority_system",
           "tests.test_optimized_multimodal",
           "tests.test_self_learning_system",
+          "tests.visual_recognition_test",
+          "deployments.k230.main",
+          "deployments.raspberry_pi.main",
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.esp32.src.models.yolo_micro",
+          "deployments.esp32.src.utils.esp32_utils",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.k230.src.models.yolo_k230",
+          "deployments.k230.src.utils.k230_utils",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "deployments.raspberry_pi.src.models.yolo_lite",
+          "deployments.raspberry_pi.src.utils.rpi_utils",
           "esp32.yolos_esp32_cam.esp32_recognition_adapter",
           "ros_workspace.src.yolos_ros.scripts.detection_node",
           "src.api.external_api_system",
@@ -279,19 +508,41 @@
           "src.core.engine",
           "src.core.event_bus",
           "src.core.event_bus",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
           "src.core.integrated_aiot_platform",
           "src.core.logger",
+          "src.core.minimal_yolos",
           "src.core.modular_extension_manager",
+          "src.core.performance_monitor",
           "src.core.platform_adapter",
           "src.core.plugin_manager",
+          "src.core.registry",
           "src.core.storage_factory",
           "src.core.storage_factory",
           "src.core.unified_config_manager",
+          "src.core.yolos_cli",
+          "src.core.yolos_cli",
+          "src.deployment.deployment_generator",
           "src.detection.camera_detector",
+          "src.detection.enhanced_realtime_detector",
           "src.detection.image_detector",
           "src.detection.realtime_detector",
           "src.detection.video_detector",
+          "src.gui.gui_manager",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.hybrid_stable_gui",
           "src.gui.main_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.stable_yolos_gui",
+          "src.gui.stable_yolos_gui",
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
@@ -299,16 +550,48 @@
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.base_detector_interface",
           "src.models.base_model",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.enhanced_yolov11_detector",
           "src.models.model_converter",
+          "src.models.optimized_yolov11_system",
+          "src.models.optimized_yolov11_system",
           "src.models.pretrained_model_loader",
           "src.models.pretrained_model_loader",
           "src.models.pretrained_resources_manager",
           "src.models.pretrained_resources_manager",
           "src.models.pretrained_resources_manager",
+          "src.models.yolov11_detector",
+          "src.models.yolov11_detector",
+          "src.models.yolov11_detector",
           "src.models.yolov5_model",
           "src.models.yolov8_model",
+          "src.models.yolo_benchmark_system",
+          "src.models.yolo_benchmark_system",
+          "src.models.yolo_benchmark_system",
+          "src.models.yolo_benchmark_system",
+          "src.models.yolo_optimized_core",
+          "src.models.yolo_optimized_core",
           "src.models.yolo_world_model",
+          "src.postprocessing.nms_processor",
+          "src.preprocessing.factory",
+          "src.preprocessing.image_preprocessor",
           "src.recognition.anti_spoofing_detector",
           "src.recognition.emergency_response_system",
           "src.recognition.enhanced_face_recognizer",
@@ -330,6 +613,7 @@
           "src.recognition.enhanced_scene_analyzer",
           "src.recognition.enhanced_scene_analyzer",
           "src.recognition.face_recognizer",
+          "src.recognition.factory",
           "src.recognition.fall_detector",
           "src.recognition.gesture_recognizer",
           "src.recognition.hybrid_recognition_system",
@@ -343,8 +627,10 @@
           "src.recognition.intelligent_multi_target_system",
           "src.recognition.intelligent_recognition_system",
           "src.recognition.llm_self_learning_system",
+          "src.recognition.local_llm_service",
           "src.recognition.medical_facial_analyzer",
           "src.recognition.medication_recognition_system",
+          "src.recognition.modelscope_llm_service",
           "src.recognition.multimodal_detector",
           "src.recognition.object_recognizer",
           "src.recognition.object_recognizer",
@@ -362,6 +648,7 @@
           "src.safety.medical_safety_manager",
           "src.safety.medical_safety_manager",
           "src.sdk.yolos_client_sdk",
+          "src.security.security_manager",
           "src.training.augmentation",
           "src.training.augmentation",
           "src.training.dataset_manager",
@@ -373,14 +660,27 @@
           "src.training.trainer",
           "src.ui.accessibility_manager",
           "src.ui.accessibility_manager",
+          "src.utils.camera_utils",
+          "src.utils.cleanup_utils",
           "src.utils.config_manager",
           "src.utils.file_utils",
           "src.utils.file_utils",
+          "src.utils.logging_manager",
           "src.utils.logging_manager",
           "src.utils.metrics",
           "src.utils.metrics",
           "src.utils.visualization",
           "src.utils.visualization",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
           "src.plugins.domain.dynamic_object_recognition",
           "src.plugins.domain.dynamic_object_recognition",
           "src.plugins.domain.dynamic_object_recognition",
@@ -410,29 +710,76 @@
           "src.plugins.platform.raspberry_pi_plugin",
           "src.plugins.platform.ros_integration",
           "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
+          "src.plugins.platform.ros_integration",
           "src.plugins.platform.ros_integration"
         ],
         "initialize_camera": [
           "basic_pet_recognition_gui",
           "tests.simple_multimodal_gui_test",
           "tests.test_gui_multimodal",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.stable_yolos_gui",
           "src.gui.yolos_training_gui",
-          "src.recognition.usb_medical_camera_system"
+          "src.recognition.usb_medical_camera_system",
+          "src.utils.camera_utils",
+          "src.utils.camera_utils",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "draw_info_panel": [
+          "basic_pet_recognition_gui",
+          "src.gui.stable_yolos_gui",
+          "src.utils.visualization_utils"
         ],
         "draw_detections": [
           "basic_pet_recognition_gui",
-          "src.gui.yolos_training_gui"
+          "k230_handheld_object_test",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.stable_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.utils.visualization_utils",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "log_detections": [
+          "basic_pet_recognition_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.stable_yolos_gui"
         ],
         "run": [
           "basic_pet_recognition_gui",
+          "k230_handheld_object_test",
           "examples.mqtt_detection",
+          "deployments.k230.main",
+          "deployments.raspberry_pi.main",
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
           "ros_workspace.src.yolos_ros.scripts.detection_node",
           "src.api.external_api_system",
+          "src.core.minimal_yolos",
+          "src.core.yolos_cli",
+          "src.gui.gui_manager",
+          "src.gui.hybrid_stable_gui",
           "src.gui.main_gui",
           "src.gui.main_gui",
           "src.gui.main_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.stable_yolos_gui",
           "src.gui.yolos_training_gui",
           "src.ui.accessibility_manager",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
           "src.plugins.platform.ros_integration"
         ],
         "cleanup": [
@@ -441,11 +788,13 @@
           "tests.test_gui_multimodal",
           "esp32.yolos_esp32_cam.esp32_recognition_adapter",
           "src.core.base_plugin",
+          "src.gui.stable_yolos_gui",
           "src.recognition.enhanced_pet_recognizer",
           "src.recognition.integrated_self_learning_recognition",
           "src.recognition.optimized_fall_detector",
           "src.recognition.optimized_multimodal_detector",
           "src.recognition.optimized_pose_recognizer",
+          "src.utils.cleanup_utils",
           "src.plugins.domain.dynamic_object_recognition",
           "src.plugins.domain.human_recognition",
           "src.plugins.domain.pet_recognition",
@@ -455,13 +804,521 @@
           "src.plugins.platform.raspberry_pi_adapter",
           "src.plugins.platform.raspberry_pi_plugin"
         ],
+        "__post_init__": [
+          "handheld_object_demo",
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "handheld_test_fixed",
+          "tests.integration_test",
+          "src.api.external_api_system",
+          "src.recognition.priority_recognition_system",
+          "src.plugins.domain.human_recognition",
+          "src.plugins.platform.esp32_plugin",
+          "src.plugins.platform.raspberry_pi_plugin"
+        ],
+        "detect": [
+          "handheld_object_demo",
+          "handheld_test_fixed",
+          "examples.yolo_optimization_integration",
+          "scripts.demo_github_enhancements",
+          "scripts.yolov11_integration",
+          "src.detector",
+          "src.core.base_plugin",
+          "src.gui.yolos_training_gui",
+          "src.models.base_detector_interface",
+          "src.models.base_detector_interface",
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector",
+          "src.models.yolov11_detector",
+          "src.models.yolo_optimized_core",
+          "src.recognition.multimodal_detector",
+          "src.recognition.optimized_multimodal_detector",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.plugins.domain.dynamic_object_recognition",
+          "src.plugins.domain.dynamic_object_recognition",
+          "src.plugins.domain.pet_recognition",
+          "src.plugins.domain.pet_recognition",
+          "src.plugins.domain.plant_recognition",
+          "src.plugins.domain.plant_recognition",
+          "src.plugins.domain.static_object_recognition",
+          "src.plugins.domain.static_object_recognition"
+        ],
+        "create_test_images": [
+          "handheld_object_demo",
+          "tests.test_quality_and_spoofing",
+          "tests.test_self_learning_system"
+        ],
+        "initialize_detectors": [
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "local_handheld_test",
+          "examples.yolo_optimization_integration"
+        ],
+        "_update_performance_stats": [
+          "handheld_object_demo",
+          "scripts.performance_enhancer",
+          "scripts.yolov11_integration",
+          "src.core.engine",
+          "src.models.optimized_yolov11_system",
+          "src.recognition.optimized_face_recognizer",
+          "src.recognition.optimized_fall_detector",
+          "src.recognition.optimized_gesture_recognizer",
+          "src.recognition.optimized_pose_recognizer",
+          "src.plugins.platform.raspberry_pi_adapter"
+        ],
+        "_draw_detections": [
+          "handheld_object_demo",
+          "src.detection.enhanced_realtime_detector"
+        ],
+        "_generate_comprehensive_report": [
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_create_performance_charts": [
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "src.models.yolo_benchmark_system"
+        ],
+        "_create_html_report": [
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_save_raw_data": [
+          "handheld_object_demo",
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "setup_camera": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "run_comprehensive_test": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed",
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo",
+          "scripts.test_yolos_detection_capability",
+          "tests.test_modular_aiot_platform",
+          "tests.test_usb_medical_camera"
+        ],
+        "_capture_and_analyze_frame": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_update_detection_stats": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_create_detection_comparison": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_draw_detections_on_frame": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_draw_test_info": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_draw_latest_detection_results": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_create_video_writer": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_save_current_results": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "_print_realtime_stats": [
+          "handheld_object_recognition_test",
+          "handheld_test_fixed"
+        ],
+        "setup_control_panel": [
+          "k230_handheld_object_test",
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "setup_display_area": [
+          "k230_handheld_object_test",
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "load_model": [
+          "k230_handheld_object_test",
+          "deployments.k230.main",
+          "src.models.base_model",
+          "src.models.pretrained_model_loader",
+          "src.models.yolov5_model",
+          "src.models.yolov8_model",
+          "src.models.yolo_optimized_core",
+          "src.models.yolo_world_model",
+          "src.training.trainer"
+        ],
+        "start_detection": [
+          "k230_handheld_object_test",
+          "src.detection.camera_detector"
+        ],
+        "stop_detection": [
+          "k230_handheld_object_test",
+          "src.detection.camera_detector"
+        ],
+        "init_camera": [
+          "k230_handheld_object_test",
+          "deployments.esp32.main",
+          "deployments.k230.main",
+          "deployments.raspberry_pi.main",
+          "esp32.yolos_esp32_cam.esp32_recognition_adapter"
+        ],
+        "detect_objects": [
+          "k230_handheld_object_test",
+          "local_handheld_test",
+          "tests.comprehensive_vision_test",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.stable_yolos_gui",
+          "src.recognition.enhanced_object_recognizer",
+          "src.recognition.object_recognizer"
+        ],
+        "update_detection_results": [
+          "k230_handheld_object_test",
+          "src.gui.versions.advanced_training_gui_v1"
+        ],
+        "update_detection_stats": [
+          "k230_handheld_object_test",
+          "tests.test_gui_multimodal"
+        ],
+        "update_status": [
+          "k230_handheld_object_test",
+          "src.gui.main_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_closing": [
+          "k230_handheld_object_test",
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.main_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "create_visualization": [
+          "local_handheld_test",
+          "src.utils.visualization_utils"
+        ],
+        "generate_report": [
+          "local_handheld_test",
+          "examples.yolo_performance_comparison",
+          "scripts.focused_dependency_check",
+          "scripts.simple_dependency_check",
+          "tests.simple_multimodal_gui_test",
+          "src.utils.metrics"
+        ],
+        "run_test": [
+          "local_handheld_test",
+          "tests.simple_multimodal_gui_test"
+        ],
+        "check_dependencies": [
+          "main",
+          "run_handheld_test",
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "_create_directories": [
+          "organize_project",
+          "scripts.setup_hybrid_system"
+        ],
         "detection_callback": [
           "examples.realtime_detection",
-          "examples.windows_multimodal_debug"
+          "examples.windows_multimodal_debug",
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo",
+          "src.detection.enhanced_realtime_detector"
+        ],
+        "generate_comprehensive_report": [
+          "examples.yolo_evolution_visualizer",
+          "tests.comprehensive_test_suite"
+        ],
+        "_load_config": [
+          "examples.yolo_optimization_integration",
+          "scripts.yolov11_deep_optimization",
+          "src.api.external_api_system",
+          "src.core.performance_monitor",
+          "src.recognition.intelligent_multi_target_system",
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "run_comprehensive_benchmark": [
+          "examples.yolo_optimization_integration",
+          "examples.yolo_performance_comparison"
+        ],
+        "run_all_tests": [
+          "examples.yolo_performance_comparison",
+          "tests.comprehensive_scenario_testing",
+          "tests.comprehensive_test_suite",
+          "tests.integration_test",
+          "tests.test_headless_multimodal",
+          "tests.test_optimized_multimodal",
+          "tests.test_self_learning_system"
+        ],
+        "_should_skip_file": [
+          "scripts.analyze_dependencies",
+          "scripts.simple_dependency_check"
+        ],
+        "_generate_report": [
+          "scripts.analyze_dependencies",
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
         ],
         "_generate_markdown_report": [
           "scripts.analyze_dependencies",
           "tests.standalone_scenario_validator"
+        ],
+        "dfs": [
+          "scripts.analyze_dependencies",
+          "scripts.simple_dependency_check"
+        ],
+        "test_realtime_camera_detection": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
+        ],
+        "test_multi_format_image_processing": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
+        ],
+        "test_multi_format_video_processing": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
+        ],
+        "test_training_capability": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo",
+          "scripts.simple_capability_test"
+        ],
+        "_generate_test_images": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo",
+          "tests.test_headless_multimodal",
+          "tests.test_optimized_multimodal"
+        ],
+        "_generate_test_videos": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
+        ],
+        "stop_after_duration": [
+          "scripts.comprehensive_yolos_capability_demo",
+          "scripts.fixed_yolos_capability_demo"
+        ],
+        "after_detection": [
+          "scripts.demo_github_enhancements",
+          "scripts.demo_github_enhancements",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks",
+          "src.core.hooks"
+        ],
+        "analyze": [
+          "scripts.demo_github_enhancements",
+          "src.recognition.enhanced_scene_analyzer",
+          "src.recognition.enhanced_scene_analyzer",
+          "src.recognition.enhanced_scene_analyzer",
+          "src.recognition.enhanced_scene_analyzer",
+          "src.recognition.enhanced_scene_analyzer",
+          "src.recognition.enhanced_scene_analyzer",
+          "src.recognition.enhanced_scene_analyzer"
+        ],
+        "before_detection": [
+          "scripts.demo_github_enhancements",
+          "src.core.hooks",
+          "src.core.hooks"
+        ],
+        "_load_model": [
+          "scripts.detection_accuracy_optimizer",
+          "scripts.yolov11_integration",
+          "src.models.yolov11_detector",
+          "src.recognition.enhanced_pet_recognizer",
+          "src.plugins.domain.pet_recognition"
+        ],
+        "_preprocess_image": [
+          "scripts.detection_accuracy_optimizer",
+          "src.models.yolov11_detector",
+          "src.recognition.hybrid_recognition_system",
+          "src.recognition.llm_self_learning_system",
+          "src.recognition.local_llm_service",
+          "src.recognition.medication_recognition_system",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_calculate_iou": [
+          "scripts.detection_accuracy_optimizer",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.yolo_benchmark_system",
+          "src.plugins.domain.static_object_recognition"
+        ],
+        "_parse_yolo_results": [
+          "scripts.detection_accuracy_optimizer",
+          "tests.real_yolo_test"
+        ],
+        "_create_error_result": [
+          "scripts.detection_accuracy_optimizer",
+          "scripts.performance_enhancer",
+          "scripts.yolov11_integration",
+          "src.recognition.integrated_self_learning_recognition",
+          "src.recognition.medical_facial_analyzer"
+        ],
+        "_update_stats": [
+          "scripts.detection_accuracy_optimizer",
+          "src.plugins.domain.human_recognition"
+        ],
+        "scan_project": [
+          "scripts.focused_dependency_check",
+          "scripts.simple_dependency_check"
+        ],
+        "_analyze_file": [
+          "scripts.focused_dependency_check",
+          "scripts.simple_dependency_check"
+        ],
+        "find_duplicate_classes": [
+          "scripts.focused_dependency_check",
+          "scripts.simple_dependency_check"
+        ],
+        "analyze_complexity": [
+          "scripts.focused_dependency_check",
+          "scripts.simple_dependency_check"
+        ],
+        "generate_performance_report": [
+          "scripts.performance_enhancer",
+          "tests.performance_test"
+        ],
+        "_setup_device": [
+          "scripts.performance_enhancer",
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector"
+        ],
+        "_worker_thread": [
+          "scripts.performance_enhancer",
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_parse_results": [
+          "scripts.performance_enhancer",
+          "scripts.yolov11_integration"
+        ],
+        "_cache_result": [
+          "scripts.performance_enhancer",
+          "src.recognition.integrated_self_learning_recognition",
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service",
+          "src.recognition.optimized_multimodal_detector"
+        ],
+        "get_performance_report": [
+          "scripts.performance_enhancer",
+          "src.recognition.improved_multimodal_detector",
+          "src.recognition.intelligent_recognition_system"
+        ],
+        "benchmark_performance": [
+          "scripts.performance_enhancer",
+          "scripts.start_yolov11_optimized"
+        ],
+        "create_optimized_config": [
+          "scripts.start_yolov11_optimized",
+          "src.core.storage_factory"
+        ],
+        "start_camera_detection": [
+          "scripts.start_yolov11_optimized",
+          "src.detection.enhanced_realtime_detector",
+          "src.detection.realtime_detector",
+          "src.models.optimized_yolov11_system"
+        ],
+        "start_video_detection": [
+          "scripts.start_yolov11_optimized",
+          "src.detection.enhanced_realtime_detector",
+          "src.detection.realtime_detector"
+        ],
+        "export_optimized_model": [
+          "scripts.start_yolov11_optimized",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.optimized_yolov11_system"
+        ],
+        "create_test_scenarios": [
+          "scripts.test_yolos_detection_capability",
+          "tests.test_multi_target_priority_system"
+        ],
+        "_generate_test_report": [
+          "scripts.test_yolos_detection_capability",
+          "tests.test_headless_multimodal",
+          "tests.test_optimized_multimodal"
+        ],
+        "image_to_base64": [
+          "scripts.visual_yolo_report",
+          "tests.enhanced_visual_yolo_test"
+        ],
+        "get_performance_stats": [
+          "scripts.yolov11_integration",
+          "src.core.engine",
+          "src.detection.enhanced_realtime_detector",
+          "src.models.base_detector_interface",
+          "src.models.base_detector_interface",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector",
+          "src.models.yolov11_detector",
+          "src.models.yolo_optimized_core",
+          "src.recognition.optimized_face_recognizer",
+          "src.recognition.optimized_gesture_recognizer"
+        ],
+        "detect_batch": [
+          "scripts.yolov11_integration",
+          "src.detector",
+          "src.detection.image_detector",
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector"
+        ],
+        "_get_class_color": [
+          "scripts.yolov11_integration",
+          "src.detection.enhanced_realtime_detector"
+        ],
+        "update_config": [
+          "src.detector",
+          "src.core.base_plugin",
+          "src.detection.enhanced_realtime_detector"
+        ],
+        "get_model_info": [
+          "src.detector",
+          "src.detection.image_detector",
+          "src.detection.realtime_detector",
+          "src.detection.video_detector",
+          "src.models.base_model",
+          "src.models.model_converter",
+          "src.models.yolo_factory",
+          "src.models.yolo_optimized_core"
+        ],
+        "__del__": [
+          "src.detector",
+          "src.recognition.enhanced_gesture_recognizer"
+        ],
+        "get_test_config": [
+          "tests.base_test",
+          "tests.test_config"
+        ],
+        "generate_image": [
+          "tests.base_test",
+          "tests.mock_data"
         ],
         "setUp": [
           "tests.base_test",
@@ -481,16 +1338,10 @@
           "tests.comprehensive_scenario_testing",
           "tests.real_world_validation",
           "tests.standalone_scenario_validator",
+          "src.models.yolo_optimized_core",
           "src.safety.medical_safety_manager",
           "src.sdk.yolos_client_sdk",
           "src.ui.accessibility_manager"
-        ],
-        "run_all_tests": [
-          "tests.comprehensive_scenario_testing",
-          "tests.integration_test",
-          "tests.test_headless_multimodal",
-          "tests.test_optimized_multimodal",
-          "tests.test_self_learning_system"
         ],
         "generate_test_report": [
           "tests.comprehensive_scenario_testing",
@@ -504,13 +1355,19 @@
           "src.recognition.intelligent_recognition_system",
           "src.plugins.domain.plant_recognition"
         ],
-        "__post_init__": [
-          "tests.integration_test",
-          "src.api.external_api_system",
-          "src.recognition.priority_recognition_system",
-          "src.plugins.domain.human_recognition",
-          "src.plugins.platform.esp32_plugin",
-          "src.plugins.platform.raspberry_pi_plugin"
+        "_encode_image": [
+          "tests.comprehensive_vision_test",
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "test_all_images": [
+          "tests.comprehensive_vision_test",
+          "tests.visual_recognition_test"
+        ],
+        "setup_test_environment": [
+          "tests.conftest",
+          "tests.test_headless_multimodal",
+          "tests.test_optimized_multimodal"
         ],
         "validate_all_scenarios": [
           "tests.real_world_validation",
@@ -524,13 +1381,19 @@
           "tests.real_world_validation",
           "tests.standalone_scenario_validator"
         ],
+        "detect_image": [
+          "tests.real_yolo_test",
+          "web.app",
+          "src.detection.image_detector"
+        ],
         "detect_multimodal": [
           "tests.simple_multimodal_gui_test",
           "src.recognition.improved_multimodal_detector"
         ],
         "draw_info_overlay": [
           "tests.simple_multimodal_gui_test",
-          "tests.test_gui_multimodal"
+          "tests.test_gui_multimodal",
+          "src.gui.hybrid_stable_gui"
         ],
         "save_screenshot": [
           "tests.simple_multimodal_gui_test",
@@ -540,23 +1403,13 @@
           "tests.simple_multimodal_gui_test",
           "tests.test_gui_multimodal",
           "src.core.engine",
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector",
           "src.recognition.multimodal_detector"
-        ],
-        "generate_report": [
-          "tests.simple_multimodal_gui_test",
-          "src.utils.metrics"
         ],
         "test_supported_boards_coverage": [
           "tests.test_aiot_compatibility",
           "tests.test_aiot_simple"
-        ],
-        "setup_test_environment": [
-          "tests.test_headless_multimodal",
-          "tests.test_optimized_multimodal"
-        ],
-        "_generate_test_images": [
-          "tests.test_headless_multimodal",
-          "tests.test_optimized_multimodal"
         ],
         "test_encoding": [
           "tests.test_headless_multimodal",
@@ -574,29 +1427,18 @@
           "tests.test_headless_multimodal",
           "tests.test_optimized_multimodal"
         ],
-        "_generate_test_report": [
-          "tests.test_headless_multimodal",
-          "tests.test_optimized_multimodal"
-        ],
         "test_configuration_loading": [
+          "tests.test_integration_basic",
           "tests.test_modular_aiot_platform",
-          "tests.test_self_learning_system"
-        ],
-        "run_comprehensive_test": [
-          "tests.test_modular_aiot_platform",
-          "tests.test_usb_medical_camera"
-        ],
-        "create_test_images": [
-          "tests.test_quality_and_spoofing",
           "tests.test_self_learning_system"
         ],
         "create_fall_detection_image": [
           "tests.test_self_learning_system",
           "tests.test_usb_medical_camera"
         ],
-        "detect_image": [
-          "web.app",
-          "src.detection.image_detector"
+        "analyze_image_with_modelscope": [
+          "tests.visual_recognition_test",
+          "src.recognition.modelscope_llm_service"
         ],
         "get_stats": [
           "web.app",
@@ -607,16 +1449,218 @@
           "src.recognition.multimodal_detector",
           "src.plugins.domain.human_recognition"
         ],
+        "detect_frame": [
+          "deployments.k230.main",
+          "deployments.raspberry_pi.main"
+        ],
+        "capture_frame": [
+          "deployments.raspberry_pi.main",
+          "src.utils.camera_utils",
+          "src.utils.camera_utils",
+          "src.plugins.platform.esp32_plugin",
+          "src.plugins.platform.raspberry_pi_plugin"
+        ],
+        "check_environment": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "create_basic_structure": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "create_basic_config": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "run_basic_demo": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "camera_demo": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "text_demo": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "show_system_info": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "run_interactive_mode": [
+          "deployments.esp32.src.core.minimal_yolos",
+          "deployments.k230.src.core.minimal_yolos",
+          "deployments.raspberry_pi.src.core.minimal_yolos",
+          "src.core.minimal_yolos"
+        ],
+        "placeholder_method": [
+          "deployments.esp32.src.models.yolo_micro",
+          "deployments.esp32.src.utils.esp32_utils",
+          "deployments.k230.src.models.yolo_k230",
+          "deployments.k230.src.utils.k230_utils",
+          "deployments.raspberry_pi.src.models.yolo_lite",
+          "deployments.raspberry_pi.src.utils.rpi_utils"
+        ],
+        "setup_ui": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "setup_menu": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "update_conf_label": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "update_nms_label": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "log_message": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "start_camera": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "stop_camera": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "toggle_detection": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "update_video_stream": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "perform_detection": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "display_frame": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "load_image": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "load_video": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "save_results": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "save_config": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.utils.file_utils",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "load_config": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.core.config",
+          "src.core.config_manager",
+          "src.core.storage_factory",
+          "src.gui.simple_yolos_gui",
+          "src.utils.file_utils",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "open_model_manager": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "open_dataset_manager": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "open_training_dialog": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.simple_yolos_gui_v1"
+        ],
+        "show_help": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.main_gui_v1",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "show_about": [
+          "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+          "src.gui.main_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.simple_yolos_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
         "capture_image": [
           "esp32.yolos_esp32_cam.esp32_recognition_adapter",
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
           "src.plugins.platform.esp32_plugin",
           "src.plugins.platform.raspberry_pi_adapter",
           "src.plugins.platform.raspberry_pi_plugin"
         ],
         "recognize": [
           "esp32.yolos_esp32_cam.esp32_recognition_adapter",
+          "src.recognition.factory",
           "src.recognition.hybrid_recognition_system",
           "src.recognition.integrated_self_learning_recognition",
           "src.recognition.intelligent_recognition_system",
@@ -642,10 +1686,6 @@
           "ros_workspace.src.yolos_ros.scripts.detection_node",
           "src.plugins.platform.ros_integration",
           "src.plugins.platform.ros_integration"
-        ],
-        "_load_config": [
-          "src.api.external_api_system",
-          "src.recognition.intelligent_multi_target_system"
         ],
         "health_check": [
           "src.api.external_api_system",
@@ -707,7 +1747,15 @@
         ],
         "to_dict": [
           "src.core.base_plugin",
-          "src.core.config"
+          "src.core.config",
+          "src.core.types",
+          "src.core.types",
+          "src.core.types",
+          "src.core.types",
+          "src.core.types",
+          "src.core.types",
+          "src.core.types",
+          "src.models.yolo_optimized_core"
         ],
         "initialize": [
           "src.core.base_plugin",
@@ -738,35 +1786,24 @@
         "get_config": [
           "src.core.base_plugin",
           "src.core.config",
+          "src.utils.camera_utils",
           "src.utils.file_utils"
         ],
         "__str__": [
           "src.core.base_plugin",
-          "src.core.config"
+          "src.core.config",
+          "src.models.yolo_optimized_core",
+          "src.postprocessing.base_processor",
+          "src.postprocessing.nms_processor",
+          "src.preprocessing.image_preprocessor"
         ],
         "__repr__": [
           "src.core.base_plugin",
-          "src.core.config"
-        ],
-        "detect": [
-          "src.core.base_plugin",
-          "src.gui.yolos_training_gui",
-          "src.recognition.multimodal_detector",
-          "src.recognition.optimized_multimodal_detector",
-          "src.plugins.domain.dynamic_object_recognition",
-          "src.plugins.domain.dynamic_object_recognition",
-          "src.plugins.domain.pet_recognition",
-          "src.plugins.domain.pet_recognition",
-          "src.plugins.domain.plant_recognition",
-          "src.plugins.domain.plant_recognition",
-          "src.plugins.domain.static_object_recognition",
-          "src.plugins.domain.static_object_recognition"
-        ],
-        "load_config": [
           "src.core.config",
-          "src.core.config_manager",
-          "src.core.storage_factory",
-          "src.utils.file_utils"
+          "src.core.registry",
+          "src.postprocessing.base_processor",
+          "src.postprocessing.nms_processor",
+          "src.preprocessing.image_preprocessor"
         ],
         "save": [
           "src.core.config",
@@ -780,6 +1817,7 @@
         ],
         "update": [
           "src.core.config",
+          "src.models.enhanced_yolov11_detector",
           "src.utils.config_manager"
         ],
         "_calculate_checksum": [
@@ -793,6 +1831,7 @@
         "get": [
           "src.core.config_manager",
           "src.core.data_manager",
+          "src.core.registry",
           "src.utils.config_manager"
         ],
         "set": [
@@ -840,6 +1879,11 @@
           "src.core.data_manager",
           "src.core.data_manager"
         ],
+        "_init_database": [
+          "src.core.data_manager",
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
         "close": [
           "src.core.data_manager",
           "src.recognition.enhanced_face_recognizer",
@@ -856,6 +1900,7 @@
           "src.core.engine",
           "src.gui.yolos_training_gui",
           "src.recognition.emergency_response_system",
+          "src.gui.versions.yolos_training_gui_v1",
           "src.plugins.domain.dynamic_object_recognition",
           "src.plugins.domain.human_recognition",
           "src.plugins.domain.pet_recognition",
@@ -869,21 +1914,14 @@
         ],
         "stop": [
           "src.core.engine",
+          "src.detection.enhanced_realtime_detector",
           "src.detection.realtime_detector",
+          "src.models.optimized_yolov11_system",
           "src.recognition.optimized_multimodal_detector"
         ],
-        "get_performance_stats": [
+        "get_supported_formats": [
           "src.core.engine",
-          "src.recognition.optimized_face_recognizer",
-          "src.recognition.optimized_gesture_recognizer"
-        ],
-        "_update_performance_stats": [
-          "src.core.engine",
-          "src.recognition.optimized_face_recognizer",
-          "src.recognition.optimized_fall_detector",
-          "src.recognition.optimized_gesture_recognizer",
-          "src.recognition.optimized_pose_recognizer",
-          "src.plugins.platform.raspberry_pi_adapter"
+          "src.training.dataset_manager"
         ],
         "__call__": [
           "src.core.event_bus",
@@ -899,6 +1937,14 @@
           "src.recognition.intelligent_multi_target_system",
           "src.recognition.priority_recognition_system"
         ],
+        "after_training_step": [
+          "src.core.hooks",
+          "src.core.hooks"
+        ],
+        "_init_fall_detector": [
+          "src.core.hooks",
+          "src.plugins.domain.human_recognition"
+        ],
         "log_function_call": [
           "src.core.logger",
           "src.utils.logging_manager"
@@ -911,7 +1957,9 @@
           "src.core.logger",
           "src.core.logger",
           "src.utils.logger",
-          "src.utils.logging_manager"
+          "src.utils.logging_manager",
+          "src.utils.logging_manager",
+          "src.plugins.platform.ros_integration"
         ],
         "__new__": [
           "src.core.logger",
@@ -923,18 +1971,22 @@
         ],
         "debug": [
           "src.core.logger",
+          "src.utils.logging_manager",
           "src.utils.logging_manager"
         ],
         "info": [
           "src.core.logger",
+          "src.utils.logging_manager",
           "src.utils.logging_manager"
         ],
         "warning": [
           "src.core.logger",
+          "src.utils.logging_manager",
           "src.utils.logging_manager"
         ],
         "error": [
           "src.core.logger",
+          "src.utils.logging_manager",
           "src.utils.logging_manager"
         ],
         "critical": [
@@ -964,16 +2016,74 @@
         "decorator": [
           "src.core.logger",
           "src.core.logger",
+          "src.core.performance_monitor",
+          "src.core.performance_monitor",
+          "src.core.registry",
+          "src.security.security_manager",
           "src.utils.logging_manager",
           "src.utils.logging_manager"
         ],
         "wrapper": [
           "src.core.logger",
+          "src.core.performance_monitor",
+          "src.security.security_manager",
+          "src.security.security_manager",
           "src.utils.logging_manager"
+        ],
+        "register_module": [
+          "src.core.modular_extension_manager",
+          "src.core.registry"
+        ],
+        "list_modules": [
+          "src.core.modular_extension_manager",
+          "src.core.registry"
         ],
         "_check_dependencies": [
           "src.core.modular_extension_manager",
           "src.core.plugin_manager"
+        ],
+        "_get_default_config": [
+          "src.core.performance_monitor",
+          "src.core.storage_factory",
+          "src.recognition.anti_spoofing_detector",
+          "src.recognition.emergency_response_system",
+          "src.recognition.enhanced_fall_detection_system",
+          "src.recognition.image_quality_enhancer",
+          "src.recognition.image_quality_enhancer",
+          "src.recognition.integrated_self_learning_recognition",
+          "src.recognition.intelligent_recognition_system",
+          "src.recognition.llm_self_learning_system",
+          "src.recognition.local_llm_service",
+          "src.recognition.medical_facial_analyzer",
+          "src.recognition.modelscope_llm_service",
+          "src.recognition.priority_recognition_system",
+          "src.recognition.usb_medical_camera_system",
+          "src.plugins.platform.aiot_boards_adapter",
+          "src.plugins.platform.arduino_adapter",
+          "src.plugins.platform.raspberry_pi_adapter"
+        ],
+        "start_monitoring": [
+          "src.core.performance_monitor",
+          "src.core.platform_adapter",
+          "src.models.yolo_benchmark_system",
+          "src.recognition.emergency_response_system",
+          "src.recognition.usb_medical_camera_system"
+        ],
+        "stop_monitoring": [
+          "src.core.performance_monitor",
+          "src.core.platform_adapter",
+          "src.models.yolo_benchmark_system",
+          "src.recognition.emergency_response_system",
+          "src.recognition.usb_medical_camera_system"
+        ],
+        "_monitor_loop": [
+          "src.core.performance_monitor",
+          "src.models.yolo_benchmark_system"
+        ],
+        "_collect_metrics": [
+          "src.core.performance_monitor",
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
         ],
         "get_platform_type": [
           "src.core.platform_adapter",
@@ -997,7 +2107,8 @@
           "src.core.platform_adapter",
           "src.core.platform_adapter",
           "src.core.platform_adapter",
-          "src.core.platform_adapter"
+          "src.core.platform_adapter",
+          "src.models.enhanced_yolov11_detector"
         ],
         "get_camera_devices": [
           "src.core.platform_adapter",
@@ -1010,16 +2121,6 @@
           "src.core.platform_adapter",
           "src.core.platform_adapter",
           "src.core.platform_adapter"
-        ],
-        "start_monitoring": [
-          "src.core.platform_adapter",
-          "src.recognition.emergency_response_system",
-          "src.recognition.usb_medical_camera_system"
-        ],
-        "stop_monitoring": [
-          "src.core.platform_adapter",
-          "src.recognition.emergency_response_system",
-          "src.recognition.usb_medical_camera_system"
         ],
         "_monitoring_loop": [
           "src.core.platform_adapter",
@@ -1034,95 +2135,278 @@
           "src.core.platform_adapter",
           "src.plugins.platform.raspberry_pi_adapter"
         ],
-        "_get_default_config": [
-          "src.core.storage_factory",
-          "src.recognition.anti_spoofing_detector",
-          "src.recognition.emergency_response_system",
-          "src.recognition.enhanced_fall_detection_system",
-          "src.recognition.image_quality_enhancer",
-          "src.recognition.image_quality_enhancer",
-          "src.recognition.integrated_self_learning_recognition",
-          "src.recognition.intelligent_recognition_system",
-          "src.recognition.llm_self_learning_system",
-          "src.recognition.medical_facial_analyzer",
-          "src.recognition.priority_recognition_system",
-          "src.recognition.usb_medical_camera_system",
-          "src.plugins.platform.aiot_boards_adapter",
-          "src.plugins.platform.arduino_adapter",
-          "src.plugins.platform.raspberry_pi_adapter"
+        "register_detector": [
+          "src.core.registry",
+          "src.detection.factory"
+        ],
+        "register_processor": [
+          "src.core.registry",
+          "src.postprocessing.processor_factory"
+        ],
+        "register_model": [
+          "src.core.registry",
+          "src.core.unified_config_manager"
+        ],
+        "execute": [
+          "src.core.yolos_cli",
+          "src.core.yolos_cli",
+          "src.core.yolos_cli",
+          "src.core.yolos_cli",
+          "src.core.yolos_cli",
+          "src.core.yolos_cli"
         ],
         "set_detection_params": [
           "src.detection.camera_detector",
           "src.recognition.multimodal_detector"
         ],
-        "get_model_info": [
-          "src.detection.image_detector",
-          "src.detection.realtime_detector",
-          "src.detection.video_detector",
-          "src.models.base_model",
-          "src.models.model_converter",
-          "src.models.yolo_factory"
+        "set_detection_callback": [
+          "src.detection.enhanced_realtime_detector",
+          "src.detection.realtime_detector"
         ],
-        "update_status": [
-          "src.gui.main_gui",
-          "src.gui.yolos_training_gui"
+        "set_frame_callback": [
+          "src.detection.enhanced_realtime_detector",
+          "src.detection.realtime_detector"
         ],
-        "show_about": [
-          "src.gui.main_gui",
-          "src.gui.yolos_training_gui"
+        "_detection_worker": [
+          "src.detection.enhanced_realtime_detector",
+          "src.detection.realtime_detector"
         ],
-        "on_closing": [
+        "_draw_performance_info": [
+          "src.detection.enhanced_realtime_detector",
+          "src.recognition.optimized_gesture_recognizer"
+        ],
+        "setup_style": [
+          "src.gui.gui_manager",
           "src.gui.main_gui",
-          "src.gui.yolos_training_gui"
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.main_gui_v1"
+        ],
+        "create_interface": [
+          "src.gui.gui_manager",
+          "src.gui.main_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.main_gui_v1"
+        ],
+        "create_status_bar": [
+          "src.gui.gui_manager",
+          "src.gui.versions.main_gui_v1"
+        ],
+        "center_window": [
+          "src.gui.gui_manager",
+          "src.gui.main_gui",
+          "src.gui.versions.main_gui_v1"
+        ],
+        "update_parameters": [
+          "src.gui.hybrid_stable_gui",
+          "src.gui.hybrid_stable_gui",
+          "src.gui.stable_yolos_gui",
+          "src.gui.stable_yolos_gui"
+        ],
+        "camera_loop": [
+          "src.gui.hybrid_stable_gui",
+          "src.gui.simple_yolos_gui",
+          "src.gui.versions.advanced_training_gui_v1"
+        ],
+        "read_frame": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "start_recording": [
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
-          "src.sdk.yolos_client_sdk"
+          "src.sdk.yolos_client_sdk",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "stop_recording": [
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
-          "src.sdk.yolos_client_sdk"
+          "src.sdk.yolos_client_sdk",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "release": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "set_current_class": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "save_image_with_annotation": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "save_video_sequence": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "get_dataset_info": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "create_gui": [
           "src.gui.yolos_training_gui",
-          "src.recognition.usb_medical_camera_system"
+          "src.recognition.usb_medical_camera_system",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "create_menu_bar": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "create_video_area": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "create_control_panel": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "create_status_panel": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "bind_events": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "video_loop": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "start_training": [
           "src.gui.yolos_training_gui",
-          "src.gui.yolos_training_gui"
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "stop_training": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_training_complete": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_training_error": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_mode_change": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_mouse_click": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_mouse_drag": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_mouse_release": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "on_key_press": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "add_new_class": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "update_dataset_info": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "update_stats": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "load_dataset": [
           "src.gui.yolos_training_gui",
           "src.gui.yolos_training_gui",
-          "src.training.dataset_manager"
+          "src.training.dataset_manager",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "save_dataset": [
           "src.gui.yolos_training_gui",
-          "src.gui.yolos_training_gui"
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.advanced_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "export_model": [
           "src.gui.yolos_training_gui",
-          "src.training.trainer"
+          "src.models.base_detector_interface",
+          "src.models.base_detector_interface",
+          "src.models.yolov11_detector",
+          "src.training.trainer",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "show_settings_dialog": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "toggle_fullscreen": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "reset_layout": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "show_augmentation_dialog": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "show_evaluation_dialog": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "setup_logger": [
           "src.gui.yolos_training_gui",
-          "src.utils.logger"
+          "src.utils.logger",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "train_thread": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
+        ],
+        "apply_settings": [
+          "src.gui.yolos_training_gui",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
         "train": [
           "src.gui.yolos_training_gui",
           "src.models.yolov8_model",
           "src.training.enhanced_human_trainer",
-          "src.training.trainer"
+          "src.training.trainer",
+          "src.gui.versions.yolos_training_gui_v1"
         ],
-        "load_model": [
-          "src.models.base_model",
-          "src.models.pretrained_model_loader",
-          "src.models.yolov5_model",
-          "src.models.yolov8_model",
-          "src.models.yolo_world_model",
-          "src.training.trainer"
+        "forward": [
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.models.advanced_yolo_optimizations",
+          "src.recognition.optimized_fall_detector",
+          "src.training.enhanced_human_trainer"
+        ],
+        "detect_adaptive": [
+          "src.models.base_detector_interface",
+          "src.models.base_detector_interface",
+          "src.models.enhanced_yolov11_detector",
+          "src.models.optimized_yolov11_system"
         ],
         "predict": [
           "src.models.base_model",
@@ -1136,21 +2420,41 @@
           "src.models.base_model",
           "src.models.yolov5_model",
           "src.models.yolov8_model",
-          "src.models.yolo_world_model"
+          "src.models.yolo_world_model",
+          "src.preprocessing.factory",
+          "src.preprocessing.image_preprocessor"
         ],
         "postprocess": [
           "src.models.base_model",
           "src.models.yolov5_model",
           "src.models.yolov8_model",
-          "src.models.yolo_world_model"
+          "src.models.yolo_world_model",
+          "src.postprocessing.base_processor",
+          "src.postprocessing.nms_processor"
         ],
         "draw_results": [
           "src.models.base_model",
           "src.recognition.enhanced_pet_recognizer"
         ],
+        "_postprocess_results": [
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector"
+        ],
+        "_map_class_to_object_type": [
+          "src.models.optimized_yolov11_system",
+          "src.models.yolov11_detector"
+        ],
         "list_available_models": [
           "src.models.pretrained_model_loader",
           "src.models.yolo_factory"
+        ],
+        "_download_model": [
+          "src.models.pretrained_resources_manager",
+          "src.recognition.local_llm_service"
+        ],
+        "set_confidence_threshold": [
+          "src.models.yolov5_model",
+          "src.models.yolo_optimized_core"
         ],
         "create_model": [
           "src.models.yolo_factory",
@@ -1317,10 +2621,6 @@
           "src.recognition.enhanced_object_recognizer",
           "src.recognition.object_recognizer"
         ],
-        "detect_objects": [
-          "src.recognition.enhanced_object_recognizer",
-          "src.recognition.object_recognizer"
-        ],
         "_detect_dominant_color": [
           "src.recognition.enhanced_object_recognizer",
           "src.recognition.object_recognizer"
@@ -1353,10 +2653,6 @@
         "_detect_text_basic": [
           "src.recognition.enhanced_object_recognizer",
           "src.recognition.object_recognizer"
-        ],
-        "_load_model": [
-          "src.recognition.enhanced_pet_recognizer",
-          "src.plugins.domain.pet_recognition"
         ],
         "_analyze_pose_type": [
           "src.recognition.enhanced_pet_recognizer",
@@ -1412,15 +2708,6 @@
           "src.recognition.optimized_multimodal_detector",
           "src.recognition.optimized_pose_recognizer"
         ],
-        "analyze": [
-          "src.recognition.enhanced_scene_analyzer",
-          "src.recognition.enhanced_scene_analyzer",
-          "src.recognition.enhanced_scene_analyzer",
-          "src.recognition.enhanced_scene_analyzer",
-          "src.recognition.enhanced_scene_analyzer",
-          "src.recognition.enhanced_scene_analyzer",
-          "src.recognition.enhanced_scene_analyzer"
-        ],
         "_detect_falls": [
           "src.recognition.enhanced_scene_analyzer",
           "src.recognition.optimized_multimodal_detector"
@@ -1452,11 +2739,6 @@
         "_classify_gesture": [
           "src.recognition.gesture_recognizer",
           "src.plugins.domain.human_recognition"
-        ],
-        "_preprocess_image": [
-          "src.recognition.hybrid_recognition_system",
-          "src.recognition.llm_self_learning_system",
-          "src.recognition.medication_recognition_system"
         ],
         "_generate_cache_key": [
           "src.recognition.hybrid_recognition_system",
@@ -1534,21 +2816,9 @@
           "src.recognition.optimized_multimodal_detector",
           "src.recognition.priority_recognition_system"
         ],
-        "get_performance_report": [
-          "src.recognition.improved_multimodal_detector",
-          "src.recognition.intelligent_recognition_system"
-        ],
         "_check_cache": [
           "src.recognition.integrated_self_learning_recognition",
           "src.recognition.intelligent_multi_target_system"
-        ],
-        "_cache_result": [
-          "src.recognition.integrated_self_learning_recognition",
-          "src.recognition.optimized_multimodal_detector"
-        ],
-        "_create_error_result": [
-          "src.recognition.integrated_self_learning_recognition",
-          "src.recognition.medical_facial_analyzer"
         ],
         "update_configuration": [
           "src.recognition.integrated_self_learning_recognition",
@@ -1566,6 +2836,70 @@
           "src.recognition.intelligent_recognition_system",
           "src.recognition.medical_facial_analyzer",
           "src.plugins.domain.dynamic_object_recognition"
+        ],
+        "start_service": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "stop_service": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_start_worker_threads": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_start_monitoring": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_record_metric": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "analyze_image": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "analyze_image_batch": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_generate_image_hash": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_get_cached_result": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_select_model": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_generate_prompt": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_parse_model_result": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "_save_result_to_db": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "get_service_status": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "get_analysis_history": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
+        ],
+        "monitoring_thread": [
+          "src.recognition.local_llm_service",
+          "src.recognition.modelscope_llm_service"
         ],
         "_detect_faces": [
           "src.recognition.medical_facial_analyzer",
@@ -1608,10 +2942,6 @@
           "src.recognition.optimized_fall_detector",
           "src.recognition.optimized_gesture_recognizer",
           "src.recognition.optimized_pose_recognizer"
-        ],
-        "forward": [
-          "src.recognition.optimized_fall_detector",
-          "src.training.enhanced_human_trainer"
         ],
         "_detect_fist": [
           "src.recognition.optimized_gesture_recognizer",
@@ -1685,6 +3015,42 @@
           "src.training.enhanced_human_trainer",
           "src.training.offline_training_manager"
         ],
+        "get_camera": [
+          "src.utils.camera_utils",
+          "src.utils.camera_utils"
+        ],
+        "release_camera": [
+          "src.utils.camera_utils",
+          "src.utils.camera_utils"
+        ],
+        "is_camera_available": [
+          "src.utils.camera_utils",
+          "src.utils.camera_utils"
+        ],
+        "get_camera_info": [
+          "src.utils.camera_utils",
+          "src.utils.camera_utils"
+        ],
+        "cleanup_cameras": [
+          "src.utils.camera_utils",
+          "src.utils.cleanup_utils"
+        ],
+        "register_resource": [
+          "src.utils.cleanup_utils",
+          "src.utils.cleanup_utils"
+        ],
+        "unregister_resource": [
+          "src.utils.cleanup_utils",
+          "src.utils.cleanup_utils"
+        ],
+        "get_resource": [
+          "src.utils.cleanup_utils",
+          "src.utils.cleanup_utils"
+        ],
+        "draw_keypoints": [
+          "src.utils.visualization",
+          "src.utils.visualization_utils"
+        ],
         "get_supported_types": [
           "src.plugins.domain.dynamic_object_recognition",
           "src.plugins.domain.dynamic_object_recognition",
@@ -1740,10 +3106,6 @@
           "src.plugins.platform.esp32_plugin",
           "src.plugins.platform.raspberry_pi_plugin"
         ],
-        "capture_frame": [
-          "src.plugins.platform.esp32_plugin",
-          "src.plugins.platform.raspberry_pi_plugin"
-        ],
         "set_power_mode": [
           "src.plugins.platform.esp32_plugin",
           "src.plugins.platform.esp32_plugin"
@@ -1782,8 +3144,92 @@
     },
     {
       "type": "large_file",
+      "module": "handheld_object_demo",
+      "lines": 945,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "handheld_object_demo",
+      "definition_count": 28,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "handheld_object_recognition_test",
+      "lines": 926,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "handheld_object_recognition_test",
+      "definition_count": 24,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "handheld_test_fixed",
+      "lines": 883,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "handheld_test_fixed",
+      "definition_count": 26,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "k230_handheld_object_test",
+      "lines": 704,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "k230_handheld_object_test",
+      "definition_count": 27,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "local_handheld_test",
+      "lines": 527,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
       "module": "examples.api_usage_examples",
       "lines": 537,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "examples.yolo_evolution_visualizer",
+      "lines": 530,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "scripts.comprehensive_yolos_capability_demo",
+      "lines": 514,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "scripts.detection_accuracy_optimizer",
+      "lines": 891,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "scripts.detection_accuracy_optimizer",
+      "definition_count": 22,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "scripts.fixed_yolos_capability_demo",
+      "lines": 527,
       "severity": "medium"
     },
     {
@@ -1799,9 +3245,27 @@
       "severity": "medium"
     },
     {
+      "type": "large_file",
+      "module": "scripts.performance_enhancer",
+      "lines": 762,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "scripts.performance_enhancer",
+      "definition_count": 24,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "scripts.yolov11_integration",
+      "lines": 535,
+      "severity": "medium"
+    },
+    {
       "type": "too_many_definitions",
       "module": "tests.base_test",
-      "definition_count": 36,
+      "definition_count": 43,
       "severity": "medium"
     },
     {
@@ -1814,6 +3278,30 @@
       "type": "too_many_definitions",
       "module": "tests.comprehensive_scenario_testing",
       "definition_count": 22,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "tests.comprehensive_test_suite",
+      "lines": 808,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "tests.comprehensive_test_suite",
+      "definition_count": 31,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "tests.comprehensive_vision_test",
+      "lines": 1007,
+      "severity": "high"
+    },
+    {
+      "type": "large_file",
+      "module": "tests.enhanced_visual_yolo_test",
+      "lines": 639,
       "severity": "medium"
     },
     {
@@ -1908,6 +3396,24 @@
     },
     {
       "type": "large_file",
+      "module": "tests.visual_recognition_test",
+      "lines": 567,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+      "lines": 545,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "deployments.raspberry_pi.src.gui.simple_yolos_gui",
+      "definition_count": 28,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
       "module": "src.api.external_api_system",
       "lines": 1060,
       "severity": "high"
@@ -1933,7 +3439,7 @@
     {
       "type": "large_file",
       "module": "src.core.config",
-      "lines": 534,
+      "lines": 547,
       "severity": "medium"
     },
     {
@@ -1991,9 +3497,27 @@
       "severity": "medium"
     },
     {
+      "type": "large_file",
+      "module": "src.core.hooks",
+      "lines": 504,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.core.hooks",
+      "definition_count": 56,
+      "severity": "medium"
+    },
+    {
       "type": "too_many_definitions",
       "module": "src.core.logger",
       "definition_count": 26,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.core.performance_monitor",
+      "definition_count": 25,
       "severity": "medium"
     },
     {
@@ -2016,8 +3540,56 @@
     },
     {
       "type": "too_many_definitions",
+      "module": "src.core.registry",
+      "definition_count": 42,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
       "module": "src.core.storage_factory",
       "definition_count": 26,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.core.types",
+      "definition_count": 29,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.core.yolos_cli",
+      "definition_count": 32,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.deployment.deployment_generator",
+      "lines": 1001,
+      "severity": "high"
+    },
+    {
+      "type": "large_file",
+      "module": "src.detection.enhanced_realtime_detector",
+      "lines": 558,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.detection.enhanced_realtime_detector",
+      "definition_count": 21,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.gui.hybrid_stable_gui",
+      "lines": 718,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.gui.hybrid_stable_gui",
+      "definition_count": 29,
       "severity": "medium"
     },
     {
@@ -2034,6 +3606,18 @@
     },
     {
       "type": "large_file",
+      "module": "src.gui.simple_yolos_gui",
+      "lines": 594,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.gui.simple_yolos_gui",
+      "definition_count": 29,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
       "module": "src.gui.yolos_training_gui",
       "lines": 840,
       "severity": "medium"
@@ -2046,6 +3630,42 @@
     },
     {
       "type": "large_file",
+      "module": "src.models.advanced_yolo_optimizations",
+      "lines": 725,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.models.advanced_yolo_optimizations",
+      "definition_count": 52,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.models.enhanced_yolov11_detector",
+      "lines": 505,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.models.enhanced_yolov11_detector",
+      "definition_count": 25,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.models.optimized_yolov11_system",
+      "lines": 596,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.models.optimized_yolov11_system",
+      "definition_count": 25,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
       "module": "src.models.pretrained_resources_manager",
       "lines": 663,
       "severity": "medium"
@@ -2054,6 +3674,42 @@
       "type": "too_many_definitions",
       "module": "src.models.pretrained_resources_manager",
       "definition_count": 23,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.models.yolov11_detector",
+      "lines": 504,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.models.yolov11_detector",
+      "definition_count": 22,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.models.yolo_benchmark_system",
+      "lines": 752,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.models.yolo_benchmark_system",
+      "definition_count": 24,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.models.yolo_optimized_core",
+      "lines": 634,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.models.yolo_optimized_core",
+      "definition_count": 26,
       "severity": "medium"
     },
     {
@@ -2196,6 +3852,18 @@
     },
     {
       "type": "large_file",
+      "module": "src.recognition.local_llm_service",
+      "lines": 748,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.recognition.local_llm_service",
+      "definition_count": 33,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
       "module": "src.recognition.medical_facial_analyzer",
       "lines": 874,
       "severity": "medium"
@@ -2204,6 +3872,24 @@
       "type": "too_many_definitions",
       "module": "src.recognition.medical_facial_analyzer",
       "definition_count": 29,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.recognition.modelscope_llm_service",
+      "lines": 774,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_imports",
+      "module": "src.recognition.modelscope_llm_service",
+      "import_count": 22,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.recognition.modelscope_llm_service",
+      "definition_count": 33,
       "severity": "medium"
     },
     {
@@ -2340,14 +4026,32 @@
     },
     {
       "type": "large_file",
+      "module": "src.security.security_manager",
+      "lines": 573,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_imports",
+      "module": "src.security.security_manager",
+      "import_count": 22,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.security.security_manager",
+      "definition_count": 36,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
       "module": "src.training.enhanced_human_trainer",
-      "lines": 618,
+      "lines": 663,
       "severity": "medium"
     },
     {
       "type": "too_many_definitions",
       "module": "src.training.enhanced_human_trainer",
-      "definition_count": 23,
+      "definition_count": 25,
       "severity": "medium"
     },
     {
@@ -2370,6 +4074,18 @@
     },
     {
       "type": "too_many_definitions",
+      "module": "src.utils.camera_utils",
+      "definition_count": 21,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.utils.cleanup_utils",
+      "definition_count": 23,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
       "module": "src.utils.file_utils",
       "definition_count": 25,
       "severity": "medium"
@@ -2377,7 +4093,49 @@
     {
       "type": "too_many_definitions",
       "module": "src.utils.logging_manager",
-      "definition_count": 25,
+      "definition_count": 32,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.utils.visualization_utils",
+      "lines": 554,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.gui.versions.advanced_training_gui_v1",
+      "lines": 719,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.gui.versions.advanced_training_gui_v1",
+      "definition_count": 40,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.gui.versions.simple_yolos_gui_v1",
+      "lines": 545,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.gui.versions.simple_yolos_gui_v1",
+      "definition_count": 28,
+      "severity": "medium"
+    },
+    {
+      "type": "large_file",
+      "module": "src.gui.versions.yolos_training_gui_v1",
+      "lines": 840,
+      "severity": "medium"
+    },
+    {
+      "type": "too_many_definitions",
+      "module": "src.gui.versions.yolos_training_gui_v1",
+      "definition_count": 73,
       "severity": "medium"
     },
     {
@@ -2437,7 +4195,7 @@
     {
       "type": "large_file",
       "module": "src.plugins.platform.aiot_boards_adapter",
-      "lines": 1228,
+      "lines": 1269,
       "severity": "high"
     },
     {
@@ -2491,13 +4249,13 @@
     {
       "type": "too_many_imports",
       "module": "src.plugins.platform.ros_integration",
-      "import_count": 22,
+      "import_count": 25,
       "severity": "medium"
     },
     {
       "type": "too_many_definitions",
       "module": "src.plugins.platform.ros_integration",
-      "definition_count": 21,
+      "definition_count": 42,
       "severity": "medium"
     }
   ],
@@ -2509,8 +4267,64 @@
       "classes": 2,
       "functions": 20
     },
-    "setup": {
-      "file_path": "setup.py",
+    "handheld_object_demo": {
+      "file_path": "handheld_object_demo.py",
+      "lines": 945,
+      "imports": 14,
+      "classes": 4,
+      "functions": 24
+    },
+    "handheld_object_recognition_test": {
+      "file_path": "handheld_object_recognition_test.py",
+      "lines": 926,
+      "imports": 18,
+      "classes": 3,
+      "functions": 21
+    },
+    "handheld_test_fixed": {
+      "file_path": "handheld_test_fixed.py",
+      "lines": 883,
+      "imports": 15,
+      "classes": 4,
+      "functions": 22
+    },
+    "k230_handheld_object_test": {
+      "file_path": "k230_handheld_object_test.py",
+      "lines": 704,
+      "imports": 14,
+      "classes": 1,
+      "functions": 26
+    },
+    "local_handheld_test": {
+      "file_path": "local_handheld_test.py",
+      "lines": 527,
+      "imports": 9,
+      "classes": 1,
+      "functions": 16
+    },
+    "main": {
+      "file_path": "main.py",
+      "lines": 206,
+      "imports": 11,
+      "classes": 0,
+      "functions": 6
+    },
+    "organize_project": {
+      "file_path": "organize_project.py",
+      "lines": 401,
+      "imports": 6,
+      "classes": 1,
+      "functions": 9
+    },
+    "run_handheld_test": {
+      "file_path": "run_handheld_test.py",
+      "lines": 141,
+      "imports": 10,
+      "classes": 0,
+      "functions": 5
+    },
+    "config.setup": {
+      "file_path": "config\\setup.py",
       "lines": 51,
       "imports": 1,
       "classes": 0,
@@ -2551,12 +4365,54 @@
       "classes": 0,
       "functions": 4
     },
+    "examples.yolo_evolution_visualizer": {
+      "file_path": "examples\\yolo_evolution_visualizer.py",
+      "lines": 530,
+      "imports": 10,
+      "classes": 1,
+      "functions": 9
+    },
+    "examples.yolo_optimization_integration": {
+      "file_path": "examples\\yolo_optimization_integration.py",
+      "lines": 431,
+      "imports": 14,
+      "classes": 3,
+      "functions": 16
+    },
+    "examples.yolo_performance_comparison": {
+      "file_path": "examples\\yolo_performance_comparison.py",
+      "lines": 287,
+      "imports": 12,
+      "classes": 1,
+      "functions": 10
+    },
     "scripts.analyze_dependencies": {
       "file_path": "scripts\\analyze_dependencies.py",
       "lines": 414,
       "imports": 8,
       "classes": 1,
       "functions": 17
+    },
+    "scripts.comprehensive_yolos_capability_demo": {
+      "file_path": "scripts\\comprehensive_yolos_capability_demo.py",
+      "lines": 514,
+      "imports": 17,
+      "classes": 1,
+      "functions": 12
+    },
+    "scripts.demo_github_enhancements": {
+      "file_path": "scripts\\demo_github_enhancements.py",
+      "lines": 456,
+      "imports": 7,
+      "classes": 4,
+      "functions": 16
+    },
+    "scripts.detection_accuracy_optimizer": {
+      "file_path": "scripts\\detection_accuracy_optimizer.py",
+      "lines": 891,
+      "imports": 9,
+      "classes": 2,
+      "functions": 20
     },
     "scripts.download_training_datasets": {
       "file_path": "scripts\\download_training_datasets.py",
@@ -2565,12 +4421,33 @@
       "classes": 1,
       "functions": 12
     },
+    "scripts.fixed_yolos_capability_demo": {
+      "file_path": "scripts\\fixed_yolos_capability_demo.py",
+      "lines": 527,
+      "imports": 17,
+      "classes": 1,
+      "functions": 12
+    },
+    "scripts.focused_dependency_check": {
+      "file_path": "scripts\\focused_dependency_check.py",
+      "lines": 340,
+      "imports": 6,
+      "classes": 1,
+      "functions": 11
+    },
     "scripts.install": {
       "file_path": "scripts\\install.py",
       "lines": 567,
       "imports": 8,
       "classes": 1,
       "functions": 22
+    },
+    "scripts.performance_enhancer": {
+      "file_path": "scripts\\performance_enhancer.py",
+      "lines": 762,
+      "imports": 13,
+      "classes": 1,
+      "functions": 23
     },
     "scripts.quick_start_enhanced_training": {
       "file_path": "scripts\\quick_start_enhanced_training.py",
@@ -2593,12 +4470,82 @@
       "classes": 0,
       "functions": 3
     },
+    "scripts.simple_capability_test": {
+      "file_path": "scripts\\simple_capability_test.py",
+      "lines": 358,
+      "imports": 9,
+      "classes": 0,
+      "functions": 6
+    },
+    "scripts.simple_dependency_check": {
+      "file_path": "scripts\\simple_dependency_check.py",
+      "lines": 263,
+      "imports": 6,
+      "classes": 1,
+      "functions": 11
+    },
+    "scripts.simple_yolos_prediction_demo": {
+      "file_path": "scripts\\simple_yolos_prediction_demo.py",
+      "lines": 266,
+      "imports": 10,
+      "classes": 0,
+      "functions": 4
+    },
+    "scripts.start_yolov11_optimized": {
+      "file_path": "scripts\\start_yolov11_optimized.py",
+      "lines": 310,
+      "imports": 14,
+      "classes": 0,
+      "functions": 6
+    },
+    "scripts.test_yolos_detection_capability": {
+      "file_path": "scripts\\test_yolos_detection_capability.py",
+      "lines": 486,
+      "imports": 14,
+      "classes": 1,
+      "functions": 14
+    },
+    "scripts.test_yolov11_upgrade": {
+      "file_path": "scripts\\test_yolov11_upgrade.py",
+      "lines": 220,
+      "imports": 9,
+      "classes": 0,
+      "functions": 5
+    },
     "scripts.train_offline_models": {
       "file_path": "scripts\\train_offline_models.py",
       "lines": 116,
       "imports": 7,
       "classes": 0,
       "functions": 1
+    },
+    "scripts.visual_yolo_report": {
+      "file_path": "scripts\\visual_yolo_report.py",
+      "lines": 384,
+      "imports": 6,
+      "classes": 0,
+      "functions": 2
+    },
+    "scripts.yolov11_deep_optimization": {
+      "file_path": "scripts\\yolov11_deep_optimization.py",
+      "lines": 420,
+      "imports": 15,
+      "classes": 1,
+      "functions": 11
+    },
+    "scripts.yolov11_integration": {
+      "file_path": "scripts\\yolov11_integration.py",
+      "lines": 535,
+      "imports": 10,
+      "classes": 1,
+      "functions": 12
+    },
+    "src.detector": {
+      "file_path": "src\\detector.py",
+      "lines": 193,
+      "imports": 10,
+      "classes": 1,
+      "functions": 7
     },
     "src.__init__": {
       "file_path": "src\\__init__.py",
@@ -2609,10 +4556,10 @@
     },
     "tests.base_test": {
       "file_path": "tests\\base_test.py",
-      "lines": 357,
+      "lines": 416,
       "imports": 17,
-      "classes": 2,
-      "functions": 34
+      "classes": 4,
+      "functions": 39
     },
     "tests.comprehensive_scenario_testing": {
       "file_path": "tests\\comprehensive_scenario_testing.py",
@@ -2620,6 +4567,34 @@
       "imports": 15,
       "classes": 1,
       "functions": 21
+    },
+    "tests.comprehensive_test_suite": {
+      "file_path": "tests\\comprehensive_test_suite.py",
+      "lines": 808,
+      "imports": 10,
+      "classes": 1,
+      "functions": 30
+    },
+    "tests.comprehensive_vision_test": {
+      "file_path": "tests\\comprehensive_vision_test.py",
+      "lines": 1007,
+      "imports": 14,
+      "classes": 3,
+      "functions": 15
+    },
+    "tests.conftest": {
+      "file_path": "tests\\conftest.py",
+      "lines": 141,
+      "imports": 6,
+      "classes": 0,
+      "functions": 10
+    },
+    "tests.enhanced_visual_yolo_test": {
+      "file_path": "tests\\enhanced_visual_yolo_test.py",
+      "lines": 639,
+      "imports": 8,
+      "classes": 0,
+      "functions": 3
     },
     "tests.integration_test": {
       "file_path": "tests\\integration_test.py",
@@ -2648,6 +4623,13 @@
       "imports": 9,
       "classes": 1,
       "functions": 68
+    },
+    "tests.real_yolo_test": {
+      "file_path": "tests\\real_yolo_test.py",
+      "lines": 492,
+      "imports": 8,
+      "classes": 1,
+      "functions": 10
     },
     "tests.simple_multimodal_gui_test": {
       "file_path": "tests\\simple_multimodal_gui_test.py",
@@ -2705,6 +4687,20 @@
       "classes": 1,
       "functions": 12
     },
+    "tests.test_integration_basic": {
+      "file_path": "tests\\test_integration_basic.py",
+      "lines": 179,
+      "imports": 15,
+      "classes": 2,
+      "functions": 11
+    },
+    "tests.test_modelscope_service": {
+      "file_path": "tests\\test_modelscope_service.py",
+      "lines": 175,
+      "imports": 9,
+      "classes": 0,
+      "functions": 3
+    },
     "tests.test_modular_aiot_platform": {
       "file_path": "tests\\test_modular_aiot_platform.py",
       "lines": 442,
@@ -2747,6 +4743,13 @@
       "classes": 1,
       "functions": 16
     },
+    "tests.test_simple_modelscope": {
+      "file_path": "tests\\test_simple_modelscope.py",
+      "lines": 303,
+      "imports": 9,
+      "classes": 0,
+      "functions": 5
+    },
     "tests.test_usb_medical_camera": {
       "file_path": "tests\\test_usb_medical_camera.py",
       "lines": 403,
@@ -2754,10 +4757,17 @@
       "classes": 0,
       "functions": 12
     },
+    "tests.visual_recognition_test": {
+      "file_path": "tests\\visual_recognition_test.py",
+      "lines": 567,
+      "imports": 10,
+      "classes": 1,
+      "functions": 8
+    },
     "tests.__init__": {
       "file_path": "tests\\__init__.py",
-      "lines": 24,
-      "imports": 5,
+      "lines": 16,
+      "imports": 1,
       "classes": 0,
       "functions": 0
     },
@@ -2767,6 +4777,97 @@
       "imports": 15,
       "classes": 0,
       "functions": 9
+    },
+    "deployments.esp32.main": {
+      "file_path": "deployments\\esp32\\main.py",
+      "lines": 52,
+      "imports": 4,
+      "classes": 0,
+      "functions": 2
+    },
+    "deployments.k230.main": {
+      "file_path": "deployments\\k230\\main.py",
+      "lines": 124,
+      "imports": 6,
+      "classes": 1,
+      "functions": 6
+    },
+    "deployments.raspberry_pi.main": {
+      "file_path": "deployments\\raspberry_pi\\main.py",
+      "lines": 128,
+      "imports": 7,
+      "classes": 1,
+      "functions": 6
+    },
+    "deployments.esp32.src.core.minimal_yolos": {
+      "file_path": "deployments\\esp32\\src\\core\\minimal_yolos.py",
+      "lines": 328,
+      "imports": 12,
+      "classes": 1,
+      "functions": 12
+    },
+    "deployments.esp32.src.models.yolo_micro": {
+      "file_path": "deployments\\esp32\\src\\models\\yolo_micro.py",
+      "lines": 23,
+      "imports": 0,
+      "classes": 1,
+      "functions": 3
+    },
+    "deployments.esp32.src.utils.esp32_utils": {
+      "file_path": "deployments\\esp32\\src\\utils\\esp32_utils.py",
+      "lines": 23,
+      "imports": 0,
+      "classes": 1,
+      "functions": 3
+    },
+    "deployments.k230.src.core.minimal_yolos": {
+      "file_path": "deployments\\k230\\src\\core\\minimal_yolos.py",
+      "lines": 328,
+      "imports": 12,
+      "classes": 1,
+      "functions": 12
+    },
+    "deployments.k230.src.models.yolo_k230": {
+      "file_path": "deployments\\k230\\src\\models\\yolo_k230.py",
+      "lines": 23,
+      "imports": 0,
+      "classes": 1,
+      "functions": 3
+    },
+    "deployments.k230.src.utils.k230_utils": {
+      "file_path": "deployments\\k230\\src\\utils\\k230_utils.py",
+      "lines": 23,
+      "imports": 0,
+      "classes": 1,
+      "functions": 3
+    },
+    "deployments.raspberry_pi.src.core.minimal_yolos": {
+      "file_path": "deployments\\raspberry_pi\\src\\core\\minimal_yolos.py",
+      "lines": 328,
+      "imports": 12,
+      "classes": 1,
+      "functions": 12
+    },
+    "deployments.raspberry_pi.src.gui.simple_yolos_gui": {
+      "file_path": "deployments\\raspberry_pi\\src\\gui\\simple_yolos_gui.py",
+      "lines": 545,
+      "imports": 11,
+      "classes": 1,
+      "functions": 27
+    },
+    "deployments.raspberry_pi.src.models.yolo_lite": {
+      "file_path": "deployments\\raspberry_pi\\src\\models\\yolo_lite.py",
+      "lines": 23,
+      "imports": 0,
+      "classes": 1,
+      "functions": 3
+    },
+    "deployments.raspberry_pi.src.utils.rpi_utils": {
+      "file_path": "deployments\\raspberry_pi\\src\\utils\\rpi_utils.py",
+      "lines": 23,
+      "imports": 0,
+      "classes": 1,
+      "functions": 3
     },
     "esp32.yolos_esp32_cam.esp32_recognition_adapter": {
       "file_path": "esp32\\yolos_esp32_cam\\esp32_recognition_adapter.py",
@@ -2819,7 +4920,7 @@
     },
     "src.core.config": {
       "file_path": "src\\core\\config.py",
-      "lines": 534,
+      "lines": 547,
       "imports": 7,
       "classes": 9,
       "functions": 17
@@ -2859,6 +4960,13 @@
       "classes": 3,
       "functions": 23
     },
+    "src.core.hooks": {
+      "file_path": "src\\core\\hooks.py",
+      "lines": 504,
+      "imports": 15,
+      "classes": 9,
+      "functions": 47
+    },
     "src.core.integrated_aiot_platform": {
       "file_path": "src\\core\\integrated_aiot_platform.py",
       "lines": 147,
@@ -2873,12 +4981,26 @@
       "classes": 1,
       "functions": 25
     },
+    "src.core.minimal_yolos": {
+      "file_path": "src\\core\\minimal_yolos.py",
+      "lines": 328,
+      "imports": 12,
+      "classes": 1,
+      "functions": 12
+    },
     "src.core.modular_extension_manager": {
       "file_path": "src\\core\\modular_extension_manager.py",
       "lines": 129,
       "imports": 5,
       "classes": 3,
       "functions": 7
+    },
+    "src.core.performance_monitor": {
+      "file_path": "src\\core\\performance_monitor.py",
+      "lines": 462,
+      "imports": 15,
+      "classes": 1,
+      "functions": 24
     },
     "src.core.platform_adapter": {
       "file_path": "src\\core\\platform_adapter.py",
@@ -2894,12 +5016,26 @@
       "classes": 3,
       "functions": 16
     },
+    "src.core.registry": {
+      "file_path": "src\\core\\registry.py",
+      "lines": 296,
+      "imports": 3,
+      "classes": 2,
+      "functions": 40
+    },
     "src.core.storage_factory": {
       "file_path": "src\\core\\storage_factory.py",
       "lines": 446,
       "imports": 11,
       "classes": 4,
       "functions": 22
+    },
+    "src.core.types": {
+      "file_path": "src\\core\\types.py",
+      "lines": 399,
+      "imports": 4,
+      "classes": 15,
+      "functions": 14
     },
     "src.core.unified_config_manager": {
       "file_path": "src\\core\\unified_config_manager.py",
@@ -2908,12 +5044,26 @@
       "classes": 3,
       "functions": 17
     },
+    "src.core.yolos_cli": {
+      "file_path": "src\\core\\yolos_cli.py",
+      "lines": 489,
+      "imports": 15,
+      "classes": 8,
+      "functions": 24
+    },
     "src.core.__init__": {
       "file_path": "src\\core\\__init__.py",
-      "lines": 78,
-      "imports": 8,
+      "lines": 69,
+      "imports": 7,
       "classes": 0,
       "functions": 0
+    },
+    "src.deployment.deployment_generator": {
+      "file_path": "src\\deployment\\deployment_generator.py",
+      "lines": 1001,
+      "imports": 10,
+      "classes": 1,
+      "functions": 16
     },
     "src.detection.camera_detector": {
       "file_path": "src\\detection\\camera_detector.py",
@@ -2928,6 +5078,20 @@
       "imports": 7,
       "classes": 0,
       "functions": 4
+    },
+    "src.detection.enhanced_realtime_detector": {
+      "file_path": "src\\detection\\enhanced_realtime_detector.py",
+      "lines": 558,
+      "imports": 12,
+      "classes": 2,
+      "functions": 19
+    },
+    "src.detection.factory": {
+      "file_path": "src\\detection\\factory.py",
+      "lines": 103,
+      "imports": 7,
+      "classes": 1,
+      "functions": 3
     },
     "src.detection.image_detector": {
       "file_path": "src\\detection\\image_detector.py",
@@ -2952,10 +5116,24 @@
     },
     "src.detection.__init__": {
       "file_path": "src\\detection\\__init__.py",
-      "lines": 15,
-      "imports": 4,
+      "lines": 17,
+      "imports": 5,
       "classes": 0,
       "functions": 0
+    },
+    "src.gui.gui_manager": {
+      "file_path": "src\\gui\\gui_manager.py",
+      "lines": 394,
+      "imports": 7,
+      "classes": 1,
+      "functions": 18
+    },
+    "src.gui.hybrid_stable_gui": {
+      "file_path": "src\\gui\\hybrid_stable_gui.py",
+      "lines": 718,
+      "imports": 14,
+      "classes": 2,
+      "functions": 27
     },
     "src.gui.main_gui": {
       "file_path": "src\\gui\\main_gui.py",
@@ -2964,12 +5142,40 @@
       "classes": 3,
       "functions": 22
     },
+    "src.gui.simple_yolos_gui": {
+      "file_path": "src\\gui\\simple_yolos_gui.py",
+      "lines": 594,
+      "imports": 12,
+      "classes": 1,
+      "functions": 28
+    },
+    "src.gui.stable_yolos_gui": {
+      "file_path": "src\\gui\\stable_yolos_gui.py",
+      "lines": 459,
+      "imports": 10,
+      "classes": 2,
+      "functions": 13
+    },
     "src.gui.yolos_training_gui": {
       "file_path": "src\\gui\\yolos_training_gui.py",
       "lines": 840,
       "imports": 19,
       "classes": 7,
       "functions": 66
+    },
+    "src.models.advanced_yolo_optimizations": {
+      "file_path": "src\\models\\advanced_yolo_optimizations.py",
+      "lines": 725,
+      "imports": 10,
+      "classes": 13,
+      "functions": 39
+    },
+    "src.models.base_detector_interface": {
+      "file_path": "src\\models\\base_detector_interface.py",
+      "lines": 200,
+      "imports": 6,
+      "classes": 2,
+      "functions": 13
     },
     "src.models.base_model": {
       "file_path": "src\\models\\base_model.py",
@@ -2978,12 +5184,26 @@
       "classes": 1,
       "functions": 10
     },
+    "src.models.enhanced_yolov11_detector": {
+      "file_path": "src\\models\\enhanced_yolov11_detector.py",
+      "lines": 505,
+      "imports": 17,
+      "classes": 5,
+      "functions": 20
+    },
     "src.models.model_converter": {
       "file_path": "src\\models\\model_converter.py",
       "lines": 476,
       "imports": 12,
       "classes": 1,
       "functions": 11
+    },
+    "src.models.optimized_yolov11_system": {
+      "file_path": "src\\models\\optimized_yolov11_system.py",
+      "lines": 596,
+      "imports": 13,
+      "classes": 3,
+      "functions": 22
     },
     "src.models.pretrained_model_loader": {
       "file_path": "src\\models\\pretrained_model_loader.py",
@@ -2997,6 +5217,13 @@
       "lines": 663,
       "imports": 14,
       "classes": 4,
+      "functions": 19
+    },
+    "src.models.yolov11_detector": {
+      "file_path": "src\\models\\yolov11_detector.py",
+      "lines": 504,
+      "imports": 12,
+      "classes": 3,
       "functions": 19
     },
     "src.models.yolov5_model": {
@@ -3013,12 +5240,26 @@
       "classes": 1,
       "functions": 9
     },
+    "src.models.yolo_benchmark_system": {
+      "file_path": "src\\models\\yolo_benchmark_system.py",
+      "lines": 752,
+      "imports": 20,
+      "classes": 6,
+      "functions": 18
+    },
     "src.models.yolo_factory": {
       "file_path": "src\\models\\yolo_factory.py",
-      "lines": 70,
-      "imports": 6,
+      "lines": 82,
+      "imports": 7,
       "classes": 1,
       "functions": 3
+    },
+    "src.models.yolo_optimized_core": {
+      "file_path": "src\\models\\yolo_optimized_core.py",
+      "lines": 634,
+      "imports": 13,
+      "classes": 2,
+      "functions": 24
     },
     "src.models.yolo_world_model": {
       "file_path": "src\\models\\yolo_world_model.py",
@@ -3038,6 +5279,62 @@
       "file_path": "src\\plugins\\__init__.py",
       "lines": 24,
       "imports": 3,
+      "classes": 0,
+      "functions": 0
+    },
+    "src.postprocessing.base_processor": {
+      "file_path": "src\\postprocessing\\base_processor.py",
+      "lines": 32,
+      "imports": 3,
+      "classes": 1,
+      "functions": 3
+    },
+    "src.postprocessing.factory": {
+      "file_path": "src\\postprocessing\\factory.py",
+      "lines": 75,
+      "imports": 3,
+      "classes": 1,
+      "functions": 3
+    },
+    "src.postprocessing.nms_processor": {
+      "file_path": "src\\postprocessing\\nms_processor.py",
+      "lines": 208,
+      "imports": 3,
+      "classes": 1,
+      "functions": 8
+    },
+    "src.postprocessing.processor_factory": {
+      "file_path": "src\\postprocessing\\processor_factory.py",
+      "lines": 117,
+      "imports": 3,
+      "classes": 1,
+      "functions": 5
+    },
+    "src.postprocessing.__init__": {
+      "file_path": "src\\postprocessing\\__init__.py",
+      "lines": 13,
+      "imports": 2,
+      "classes": 0,
+      "functions": 0
+    },
+    "src.preprocessing.factory": {
+      "file_path": "src\\preprocessing\\factory.py",
+      "lines": 162,
+      "imports": 4,
+      "classes": 2,
+      "functions": 7
+    },
+    "src.preprocessing.image_preprocessor": {
+      "file_path": "src\\preprocessing\\image_preprocessor.py",
+      "lines": 148,
+      "imports": 3,
+      "classes": 1,
+      "functions": 6
+    },
+    "src.preprocessing.__init__": {
+      "file_path": "src\\preprocessing\\__init__.py",
+      "lines": 13,
+      "imports": 2,
       "classes": 0,
       "functions": 0
     },
@@ -3104,6 +5401,13 @@
       "classes": 1,
       "functions": 12
     },
+    "src.recognition.factory": {
+      "file_path": "src\\recognition\\factory.py",
+      "lines": 122,
+      "imports": 4,
+      "classes": 2,
+      "functions": 6
+    },
     "src.recognition.fall_detector": {
       "file_path": "src\\recognition\\fall_detector.py",
       "lines": 435,
@@ -3167,6 +5471,13 @@
       "classes": 5,
       "functions": 37
     },
+    "src.recognition.local_llm_service": {
+      "file_path": "src\\recognition\\local_llm_service.py",
+      "lines": 748,
+      "imports": 20,
+      "classes": 3,
+      "functions": 30
+    },
     "src.recognition.medical_facial_analyzer": {
       "file_path": "src\\recognition\\medical_facial_analyzer.py",
       "lines": 874,
@@ -3180,6 +5491,13 @@
       "imports": 5,
       "classes": 2,
       "functions": 7
+    },
+    "src.recognition.modelscope_llm_service": {
+      "file_path": "src\\recognition\\modelscope_llm_service.py",
+      "lines": 774,
+      "imports": 22,
+      "classes": 3,
+      "functions": 30
     },
     "src.recognition.multimodal_detector": {
       "file_path": "src\\recognition\\multimodal_detector.py",
@@ -3260,8 +5578,8 @@
     },
     "src.recognition.__init__": {
       "file_path": "src\\recognition\\__init__.py",
-      "lines": 15,
-      "imports": 4,
+      "lines": 17,
+      "imports": 5,
       "classes": 0,
       "functions": 0
     },
@@ -3279,6 +5597,13 @@
       "classes": 6,
       "functions": 43
     },
+    "src.security.security_manager": {
+      "file_path": "src\\security\\security_manager.py",
+      "lines": 573,
+      "imports": 22,
+      "classes": 1,
+      "functions": 35
+    },
     "src.training.augmentation": {
       "file_path": "src\\training\\augmentation.py",
       "lines": 40,
@@ -3288,17 +5613,17 @@
     },
     "src.training.dataset_manager": {
       "file_path": "src\\training\\dataset_manager.py",
-      "lines": 33,
+      "lines": 52,
       "imports": 4,
       "classes": 1,
-      "functions": 3
+      "functions": 5
     },
     "src.training.enhanced_human_trainer": {
       "file_path": "src\\training\\enhanced_human_trainer.py",
-      "lines": 618,
+      "lines": 663,
       "imports": 14,
       "classes": 5,
-      "functions": 18
+      "functions": 20
     },
     "src.training.offline_training_manager": {
       "file_path": "src\\training\\offline_training_manager.py",
@@ -3328,6 +5653,20 @@
       "classes": 6,
       "functions": 33
     },
+    "src.utils.camera_utils": {
+      "file_path": "src\\utils\\camera_utils.py",
+      "lines": 370,
+      "imports": 5,
+      "classes": 1,
+      "functions": 20
+    },
+    "src.utils.cleanup_utils": {
+      "file_path": "src\\utils\\cleanup_utils.py",
+      "lines": 475,
+      "imports": 14,
+      "classes": 1,
+      "functions": 22
+    },
     "src.utils.config_manager": {
       "file_path": "src\\utils\\config_manager.py",
       "lines": 331,
@@ -3351,10 +5690,10 @@
     },
     "src.utils.logging_manager": {
       "file_path": "src\\utils\\logging_manager.py",
-      "lines": 328,
+      "lines": 350,
       "imports": 12,
-      "classes": 1,
-      "functions": 24
+      "classes": 2,
+      "functions": 30
     },
     "src.utils.metrics": {
       "file_path": "src\\utils\\metrics.py",
@@ -3370,12 +5709,47 @@
       "classes": 2,
       "functions": 9
     },
+    "src.utils.visualization_utils": {
+      "file_path": "src\\utils\\visualization_utils.py",
+      "lines": 554,
+      "imports": 6,
+      "classes": 0,
+      "functions": 18
+    },
     "src.utils.__init__": {
       "file_path": "src\\utils\\__init__.py",
       "lines": 17,
       "imports": 5,
       "classes": 0,
       "functions": 0
+    },
+    "src.gui.versions.advanced_training_gui_v1": {
+      "file_path": "src\\gui\\versions\\advanced_training_gui_v1.py",
+      "lines": 719,
+      "imports": 15,
+      "classes": 1,
+      "functions": 39
+    },
+    "src.gui.versions.main_gui_v1": {
+      "file_path": "src\\gui\\versions\\main_gui_v1.py",
+      "lines": 254,
+      "imports": 7,
+      "classes": 3,
+      "functions": 16
+    },
+    "src.gui.versions.simple_yolos_gui_v1": {
+      "file_path": "src\\gui\\versions\\simple_yolos_gui_v1.py",
+      "lines": 545,
+      "imports": 11,
+      "classes": 1,
+      "functions": 27
+    },
+    "src.gui.versions.yolos_training_gui_v1": {
+      "file_path": "src\\gui\\versions\\yolos_training_gui_v1.py",
+      "lines": 840,
+      "imports": 19,
+      "classes": 7,
+      "functions": 66
     },
     "src.plugins.domain.dynamic_object_recognition": {
       "file_path": "src\\plugins\\domain\\dynamic_object_recognition.py",
@@ -3428,7 +5802,7 @@
     },
     "src.plugins.platform.aiot_boards_adapter": {
       "file_path": "src\\plugins\\platform\\aiot_boards_adapter.py",
-      "lines": 1228,
+      "lines": 1269,
       "imports": 22,
       "classes": 1,
       "functions": 28
@@ -3463,22 +5837,22 @@
     },
     "src.plugins.platform.ros_integration": {
       "file_path": "src\\plugins\\platform\\ros_integration.py",
-      "lines": 435,
-      "imports": 22,
-      "classes": 3,
-      "functions": 18
+      "lines": 500,
+      "imports": 25,
+      "classes": 11,
+      "functions": 31
     },
     "src.plugins.platform.__init__": {
       "file_path": "src\\plugins\\platform\\__init__.py",
       "lines": 26,
-      "imports": 6,
+      "imports": 4,
       "classes": 0,
       "functions": 0
     },
     "src.plugins.utility.__init__": {
       "file_path": "src\\plugins\\utility\\__init__.py",
-      "lines": 26,
-      "imports": 6,
+      "lines": 14,
+      "imports": 0,
       "classes": 0,
       "functions": 0
     }

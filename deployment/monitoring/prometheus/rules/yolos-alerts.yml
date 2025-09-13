@@ -1,0 +1,385 @@
+# YOLOS系统告警规则
+# 定义各种监控指标的告警条件
+
+groups:
+  # ============================================================================
+  # 应用程序告警
+  # ============================================================================
+  - name: yolos-application
+    rules:
+      # 应用程序宕机告警
+      - alert: YOLOSApplicationDown
+        expr: up{job="yolos-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: yolos-app
+          category: availability
+        annotations:
+          summary: "YOLOS应用程序宕机"
+          description: "YOLOS主应用程序已宕机超过1分钟，实例: {{ $labels.instance }}"
+          runbook_url: "https://docs.yolos.com/runbooks/app-down"
+
+      # Web界面宕机告警
+      - alert: YOLOSWebDown
+        expr: up{job="yolos-web"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: yolos-web
+          category: availability
+        annotations:
+          summary: "YOLOS Web界面宕机"
+          description: "YOLOS Web界面已宕机超过2分钟，实例: {{ $labels.instance }}"
+
+      # API响应时间过长
+      - alert: YOLOSHighAPILatency
+        expr: histogram_quantile(0.95, rate(yolos_api_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: yolos-app
+          category: performance
+        annotations:
+          summary: "YOLOS API响应时间过长"
+          description: "95%的API请求响应时间超过2秒，当前值: {{ $value }}秒"
+
+      # API错误率过高
+      - alert: YOLOSHighAPIErrorRate
+        expr: |
+          (
+            rate(yolos_api_requests_total{status=~"5.."}[5m]) /
+            rate(yolos_api_requests_total[5m])
+          ) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+          service: yolos-app
+          category: reliability
+        annotations:
+          summary: "YOLOS API错误率过高"
+          description: "API 5xx错误率超过5%，当前值: {{ $value }}%"
+
+      # 检测任务失败率过高
+      - alert: YOLOSHighDetectionFailureRate
+        expr: |
+          (
+            rate(yolos_detection_failures_total[5m]) /
+            rate(yolos_detection_requests_total[5m])
+          ) * 100 > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: yolos-app
+          category: business
+        annotations:
+          summary: "YOLOS检测任务失败率过高"
+          description: "检测任务失败率超过10%，当前值: {{ $value }}%"
+
+      # 模型推理时间过长
+      - alert: YOLOSSlowModelInference
+        expr: histogram_quantile(0.95, rate(yolos_model_inference_duration_seconds_bucket[5m])) > 5
+        for: 3m
+        labels:
+          severity: warning
+          service: yolos-app
+          category: performance
+        annotations:
+          summary: "YOLOS模型推理时间过长"
+          description: "95%的模型推理时间超过5秒，当前值: {{ $value }}秒"
+
+  # ============================================================================
+  # 系统资源告警
+  # ============================================================================
+  - name: yolos-system-resources
+    rules:
+      # CPU使用率过高
+      - alert: YOLOSHighCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "YOLOS系统CPU使用率过高"
+          description: "CPU使用率超过80%，当前值: {{ $value }}%，实例: {{ $labels.instance }}"
+
+      # 内存使用率过高
+      - alert: YOLOSHighMemoryUsage
+        expr: |
+          (
+            (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) /
+            node_memory_MemTotal_bytes
+          ) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "YOLOS系统内存使用率过高"
+          description: "内存使用率超过85%，当前值: {{ $value }}%，实例: {{ $labels.instance }}"
+
+      # 磁盘空间不足
+      - alert: YOLOSLowDiskSpace
+        expr: |
+          (
+            (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) /
+            node_filesystem_size_bytes{fstype!="tmpfs"}
+          ) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "YOLOS系统磁盘空间不足"
+          description: "磁盘使用率超过90%，当前值: {{ $value }}%，挂载点: {{ $labels.mountpoint }}"
+
+      # GPU使用率过高 (如果有GPU)
+      - alert: YOLOSHighGPUUsage
+        expr: nvidia_gpu_utilization > 95
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "YOLOS GPU使用率过高"
+          description: "GPU使用率超过95%，当前值: {{ $value }}%，GPU: {{ $labels.gpu }}"
+
+      # GPU内存使用率过高
+      - alert: YOLOSHighGPUMemoryUsage
+        expr: |
+          (
+            nvidia_gpu_memory_used_bytes /
+            nvidia_gpu_memory_total_bytes
+          ) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "YOLOS GPU内存使用率过高"
+          description: "GPU内存使用率超过90%，当前值: {{ $value }}%，GPU: {{ $labels.gpu }}"
+
+  # ============================================================================
+  # 数据库告警
+  # ============================================================================
+  - name: yolos-database
+    rules:
+      # PostgreSQL宕机
+      - alert: YOLOSPostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+          category: availability
+        annotations:
+          summary: "YOLOS PostgreSQL数据库宕机"
+          description: "PostgreSQL数据库已宕机超过1分钟，实例: {{ $labels.instance }}"
+
+      # Redis宕机
+      - alert: YOLOSRedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+          category: availability
+        annotations:
+          summary: "YOLOS Redis缓存宕机"
+          description: "Redis缓存已宕机超过1分钟，实例: {{ $labels.instance }}"
+
+      # 数据库连接数过多
+      - alert: YOLOSHighDatabaseConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: postgres
+          category: performance
+        annotations:
+          summary: "YOLOS数据库连接数过多"
+          description: "PostgreSQL活跃连接数超过80，当前值: {{ $value }}"
+
+      # Redis内存使用率过高
+      - alert: YOLOSHighRedisMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes /
+            redis_memory_max_bytes
+          ) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          category: resources
+        annotations:
+          summary: "YOLOS Redis内存使用率过高"
+          description: "Redis内存使用率超过90%，当前值: {{ $value }}%"
+
+  # ============================================================================
+  # 网络和负载均衡告警
+  # ============================================================================
+  - name: yolos-network
+    rules:
+      # Nginx宕机
+      - alert: YOLOSNginxDown
+        expr: up{job="nginx"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: nginx
+          category: availability
+        annotations:
+          summary: "YOLOS Nginx负载均衡器宕机"
+          description: "Nginx负载均衡器已宕机超过1分钟，实例: {{ $labels.instance }}"
+
+      # HTTP 4xx错误率过高
+      - alert: YOLOSHigh4xxErrorRate
+        expr: |
+          (
+            rate(nginx_http_requests_total{status=~"4.."}[5m]) /
+            rate(nginx_http_requests_total[5m])
+          ) * 100 > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: nginx
+          category: reliability
+        annotations:
+          summary: "YOLOS HTTP 4xx错误率过高"
+          description: "HTTP 4xx错误率超过10%，当前值: {{ $value }}%"
+
+      # 网络延迟过高
+      - alert: YOLOSHighNetworkLatency
+        expr: probe_duration_seconds{job="blackbox"} > 1
+        for: 3m
+        labels:
+          severity: warning
+          category: network
+        annotations:
+          summary: "YOLOS网络延迟过高"
+          description: "网络探测延迟超过1秒，当前值: {{ $value }}秒，目标: {{ $labels.instance }}"
+
+  # ============================================================================
+  # 容器和Docker告警
+  # ============================================================================
+  - name: yolos-containers
+    rules:
+      # 容器重启频繁
+      - alert: YOLOSContainerRestartingFrequently
+        expr: rate(container_start_time_seconds[15m]) * 60 * 15 > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "YOLOS容器重启频繁"
+          description: "容器在15分钟内重启超过5次，容器: {{ $labels.name }}"
+
+      # 容器内存使用率过高
+      - alert: YOLOSContainerHighMemoryUsage
+        expr: |
+          (
+            container_memory_usage_bytes{name!=""} /
+            container_spec_memory_limit_bytes{name!=""}
+          ) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "YOLOS容器内存使用率过高"
+          description: "容器内存使用率超过90%，当前值: {{ $value }}%，容器: {{ $labels.name }}"
+
+      # 容器CPU使用率过高
+      - alert: YOLOSContainerHighCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{name!=""}[5m]) /
+            container_spec_cpu_quota{name!=""} * container_spec_cpu_period{name!=""}
+          ) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "YOLOS容器CPU使用率过高"
+          description: "容器CPU使用率超过80%，当前值: {{ $value }}%，容器: {{ $labels.name }}"
+
+  # ============================================================================
+  # 业务指标告警
+  # ============================================================================
+  - name: yolos-business-metrics
+    rules:
+      # 检测准确率下降
+      - alert: YOLOSDetectionAccuracyDrop
+        expr: yolos_detection_accuracy < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "YOLOS检测准确率下降"
+          description: "检测准确率低于80%，当前值: {{ $value }}"
+
+      # 处理队列积压
+      - alert: YOLOSProcessingQueueBacklog
+        expr: yolos_processing_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "YOLOS处理队列积压"
+          description: "处理队列积压超过100个任务，当前值: {{ $value }}"
+
+      # 用户会话数异常
+      - alert: YOLOSAbnormalUserSessions
+        expr: |
+          (
+            yolos_active_user_sessions > (
+              avg_over_time(yolos_active_user_sessions[1h]) * 2
+            )
+          ) or (
+            yolos_active_user_sessions < (
+              avg_over_time(yolos_active_user_sessions[1h]) * 0.5
+            )
+          )
+        for: 10m
+        labels:
+          severity: info
+          category: business
+        annotations:
+          summary: "YOLOS用户会话数异常"
+          description: "用户会话数异常，当前值: {{ $value }}，1小时平均值: {{ $labels.avg_sessions }}"
+
+  # ============================================================================
+  # 安全告警
+  # ============================================================================
+  - name: yolos-security
+    rules:
+      # 异常登录尝试
+      - alert: YOLOSHighFailedLoginAttempts
+        expr: rate(yolos_failed_login_attempts_total[5m]) * 300 > 10
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "YOLOS异常登录尝试"
+          description: "5分钟内失败登录尝试超过10次，当前速率: {{ $value }}/5min"
+
+      # SSL证书即将过期
+      - alert: YOLOSSSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "YOLOS SSL证书即将过期"
+          description: "SSL证书将在7天内过期，剩余时间: {{ $value }}秒"

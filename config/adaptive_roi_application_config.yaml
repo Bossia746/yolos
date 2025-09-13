@@ -1,0 +1,247 @@
+# 自适应ROI机制应用配置
+# 基于FastTracker论文的自适应ROI优化
+
+# 全局配置
+global:
+  enabled: true
+  debug_mode: false
+  log_level: "INFO"
+  performance_monitoring: true
+
+# 应用场景配置
+application_scenarios:
+  # 1. 医疗监控场景
+  medical_monitoring:
+    enabled: true
+    roi_strategy: "patient_focused"
+    parameters:
+      base_roi_size: [416, 416]
+      min_roi_size: [224, 224]
+      max_roi_size: [640, 640]
+      expansion_factor: 1.3
+      tracking_sensitivity: 0.8
+      fall_detection_roi: true
+      vital_signs_roi: true
+    
+  # 2. 宠物监控场景
+  pet_monitoring:
+    enabled: true
+    roi_strategy: "movement_adaptive"
+    parameters:
+      base_roi_size: [384, 384]
+      min_roi_size: [192, 192]
+      max_roi_size: [512, 512]
+      expansion_factor: 1.5
+      activity_threshold: 0.6
+      behavior_analysis_roi: true
+      multi_pet_support: true
+    
+  # 3. 安全监控场景
+  security_monitoring:
+    enabled: true
+    roi_strategy: "intrusion_detection"
+    parameters:
+      base_roi_size: [480, 480]
+      min_roi_size: [240, 240]
+      max_roi_size: [640, 640]
+      expansion_factor: 1.2
+      motion_sensitivity: 0.7
+      perimeter_roi: true
+      danger_zone_roi: true
+    
+  # 4. 手势识别场景
+  gesture_recognition:
+    enabled: true
+    roi_strategy: "hand_tracking"
+    parameters:
+      base_roi_size: [320, 320]
+      min_roi_size: [160, 160]
+      max_roi_size: [480, 480]
+      expansion_factor: 1.4
+      hand_detection_threshold: 0.5
+      gesture_roi_padding: 20
+      multi_hand_support: true
+
+# ROI预测网络配置
+roi_predictor:
+  architecture:
+    input_features: 6  # 场景特征 + 历史ROI信息
+    hidden_layers: [128, 64, 32]
+    output_features: 4  # ROI边界框坐标
+    activation: "relu"
+    dropout_rate: 0.1
+  
+  training:
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 100
+    optimizer: "adam"
+    loss_function: "smooth_l1"
+
+# 动态调整策略
+dynamic_adjustment:
+  # 基于目标运动状态
+  motion_based:
+    enabled: true
+    velocity_threshold: 5.0  # 像素/帧
+    acceleration_factor: 1.2
+    direction_prediction: true
+    
+  # 基于目标大小变化
+  size_based:
+    enabled: true
+    size_change_threshold: 0.1
+    scale_adaptation_rate: 0.05
+    min_scale_factor: 0.8
+    max_scale_factor: 1.5
+    
+  # 基于检测置信度
+  confidence_based:
+    enabled: true
+    confidence_threshold: 0.7
+    low_confidence_expansion: 1.3
+    high_confidence_contraction: 0.9
+
+# 性能优化配置
+performance_optimization:
+  # 计算资源管理
+  resource_management:
+    max_roi_per_frame: 5
+    roi_update_frequency: 3  # 每3帧更新一次ROI
+    memory_limit_mb: 512
+    cpu_usage_limit: 70
+    
+  # 并行处理
+  parallel_processing:
+    enabled: true
+    num_workers: 2
+    batch_processing: true
+    async_roi_prediction: true
+    
+  # 缓存策略
+  caching:
+    roi_history_length: 10
+    feature_cache_size: 100
+    prediction_cache_ttl: 5  # 秒
+
+# 嵌入式平台适配
+embedded_platforms:
+  # 树莓派 4B
+  raspberry_pi_4b:
+    roi_size_limit: [384, 384]
+    max_concurrent_rois: 2
+    update_frequency: 5
+    memory_optimization: true
+    
+  # NVIDIA Jetson Nano
+  jetson_nano:
+    roi_size_limit: [512, 512]
+    max_concurrent_rois: 3
+    update_frequency: 3
+    gpu_acceleration: true
+    
+  # Intel NUC
+  intel_nuc:
+    roi_size_limit: [640, 640]
+    max_concurrent_rois: 5
+    update_frequency: 1
+    cpu_optimization: true
+    
+  # Orange Pi 5
+  orange_pi_5:
+    roi_size_limit: [416, 416]
+    max_concurrent_rois: 3
+    update_frequency: 4
+    npu_acceleration: true
+    
+  # Rockchip RK3588
+  rockchip_rk3588:
+    roi_size_limit: [480, 480]
+    max_concurrent_rois: 4
+    update_frequency: 2
+    npu_optimization: true
+
+# 质量评估配置
+quality_assessment:
+  # ROI质量指标
+  roi_quality_metrics:
+    coverage_ratio: 0.8  # ROI覆盖目标的比例
+    precision_threshold: 0.9
+    stability_factor: 0.85
+    computational_efficiency: 0.7
+    
+  # 自适应调整
+  adaptive_tuning:
+    enabled: true
+    adjustment_interval: 50  # 帧
+    performance_threshold: 0.8
+    auto_parameter_tuning: true
+
+# 测试和验证配置
+testing:
+  # 单元测试
+  unit_tests:
+    roi_prediction_accuracy: true
+    performance_benchmarks: true
+    memory_usage_tests: true
+    
+  # 集成测试
+  integration_tests:
+    real_time_performance: true
+    multi_scenario_testing: true
+    platform_compatibility: true
+    
+  # 基准测试数据集
+  benchmark_datasets:
+    - name: "medical_monitoring_dataset"
+      path: "data/benchmarks/medical"
+      scenarios: ["fall_detection", "vital_signs"]
+    - name: "pet_monitoring_dataset"
+      path: "data/benchmarks/pets"
+      scenarios: ["activity_tracking", "behavior_analysis"]
+    - name: "security_dataset"
+      path: "data/benchmarks/security"
+      scenarios: ["intrusion_detection", "perimeter_monitoring"]
+
+# 监控和日志配置
+monitoring:
+  # 性能监控
+  performance_metrics:
+    roi_prediction_time: true
+    memory_usage: true
+    cpu_utilization: true
+    accuracy_metrics: true
+    
+  # 日志配置
+  logging:
+    log_file: "logs/adaptive_roi.log"
+    log_rotation: true
+    max_log_size: "10MB"
+    backup_count: 5
+    
+  # 告警配置
+  alerts:
+    performance_degradation: true
+    memory_overflow: true
+    accuracy_drop: true
+    system_overload: true
+
+# 故障处理配置
+fault_tolerance:
+  # 错误恢复
+  error_recovery:
+    max_retry_attempts: 3
+    fallback_roi_strategy: "center_crop"
+    graceful_degradation: true
+    
+  # 异常处理
+  exception_handling:
+    invalid_roi_handling: "clip_to_bounds"
+    memory_overflow_action: "reduce_roi_size"
+    prediction_failure_action: "use_previous_roi"
+    
+  # 系统保护
+  system_protection:
+    max_processing_time: 100  # 毫秒
+    resource_usage_limit: 80  # 百分比
+    emergency_shutdown: true

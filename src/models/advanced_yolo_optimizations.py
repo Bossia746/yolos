@@ -15,7 +15,9 @@ import math
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from ..utils.logging_manager import LoggingManager
+# from ..utils.logging_manager import LoggingManager  # 暂时注释掉
+import logging
+from .enhanced_mish_activation import EnhancedMish, MishVariants
 
 
 @dataclass
@@ -24,8 +26,8 @@ class ArchitectureConfig:
     backbone_depth: int = 5
     neck_channels: int = 256
     head_layers: int = 3
-    activation: str = 'SiLU'
-    attention_type: str = 'SE'  # SE, CBAM, ECA
+    activation: str = 'enhanced_mish'
+    attention_type: str = 'SE'  # SE, CBAM, ECA, SimAM
     use_transformer: bool = False
     transformer_layers: int = 6
 
@@ -43,6 +45,8 @@ class AttentionModule(nn.Module):
             self.attention = CBAMAttention(channels)
         elif attention_type == 'ECA':
             self.attention = ECAAttention(channels)
+        elif attention_type == 'SimAM':
+            self.attention = SimAMAttention(channels)
         else:
             self.attention = nn.Identity()
     
@@ -142,6 +146,276 @@ class ECAAttention(nn.Module):
         return x * y.expand_as(x)
 
 
+class Mish(nn.Module):
+    """Mish激活函数
+    
+    Mish(x) = x * tanh(softplus(x))
+    具有平滑非单调特性，提升模型训练稳定性和检测精度
+    
+    Reference: Mish: A Self Regularized Non-Monotonic Activation Function
+    """
+    
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, x):
+        return x * torch.tanh(F.softplus(x))
+
+
+class SimSPPF(nn.Module):
+    """SimSPPF模块 - 改进的空间金字塔池化快速版本
+    
+    结合Mish激活函数和SimAM注意力机制，提升多尺度特征池化效果
+    基于FastTracker论文的设计思想，恢复细粒度信息
+    
+    Features:
+    - 多尺度池化：5x5, 9x9, 13x13核大小
+    - Mish激活函数：提升训练稳定性
+    - SimAM注意力：无参数注意力增强
+    - 特征融合：有效整合多尺度信息
+    """
+    
+    def __init__(self, c1: int, c2: int, k: int = 5):
+        """初始化SimSPPF模块
+        
+        Args:
+            c1: 输入通道数
+            c2: 输出通道数
+            k: 池化核大小（默认5）
+        """
+        super().__init__()
+        c_ = c1 // 2  # 隐藏层通道数
+        
+        # 输入卷积层
+        self.cv1 = nn.Sequential(
+            nn.Conv2d(c1, c_, 1, 1),
+            nn.BatchNorm2d(c_),
+            Mish()  # 使用Mish激活函数
+        )
+        
+        # 输出卷积层
+        self.cv2 = nn.Sequential(
+            nn.Conv2d(c_ * 4, c2, 1, 1),
+            nn.BatchNorm2d(c2),
+            Mish()  # 使用Mish激活函数
+        )
+        
+        # 最大池化层
+        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        
+        # SimAM注意力机制
+        self.attention = SimAMAttention(c2)
+    
+    def forward(self, x):
+        """前向传播
+        
+        Args:
+            x: 输入特征图 [B, C1, H, W]
+            
+        Returns:
+            增强后的特征图 [B, C2, H, W]
+        """
+        # 输入卷积
+        x = self.cv1(x)
+        
+        # 多尺度池化
+        y1 = self.m(x)  # 5x5池化
+        y2 = self.m(y1)  # 9x9池化（级联）
+        y3 = self.m(y2)  # 13x13池化（级联）
+        
+        # 特征拼接
+        out = torch.cat([x, y1, y2, y3], 1)
+        
+        # 输出卷积
+        out = self.cv2(out)
+        
+        # 应用SimAM注意力
+        out = self.attention(out)
+        
+        return out
+
+
+class GhostConv(nn.Module):
+    """Ghost卷积模块
+    
+    基于GhostNet的思想，通过廉价操作生成更多特征图
+    减少参数量和计算量，同时保持特征表示能力
+    
+    Reference: GhostNet: More Features from Cheap Operations
+    """
+    
+    def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, g: int = 1, act: bool = True):
+        """初始化Ghost卷积
+        
+        Args:
+            c1: 输入通道数
+            c2: 输出通道数
+            k: 卷积核大小
+            s: 步长
+            g: 分组数
+            act: 是否使用激活函数
+        """
+        super().__init__()
+        c_ = c2 // 2  # 隐藏层通道数
+        
+        # 主卷积：生成一半的特征图
+        self.cv1 = nn.Sequential(
+            nn.Conv2d(c1, c_, k, s, k // 2, groups=g, bias=False),
+            nn.BatchNorm2d(c_),
+            Mish() if act else nn.Identity()
+        )
+        
+        # 廉价操作：通过深度卷积生成另一半特征图
+        self.cv2 = nn.Sequential(
+            nn.Conv2d(c_, c_, 5, 1, 2, groups=c_, bias=False),
+            nn.BatchNorm2d(c_),
+            Mish() if act else nn.Identity()
+        )
+    
+    def forward(self, x):
+        """前向传播"""
+        y = self.cv1(x)
+        return torch.cat([y, self.cv2(y)], 1)
+
+
+class GhostBottleneck(nn.Module):
+    """Ghost瓶颈块
+    
+    使用Ghost卷积构建的瓶颈结构
+    """
+    
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1):
+        """初始化Ghost瓶颈块
+        
+        Args:
+            c1: 输入通道数
+            c2: 输出通道数
+            k: 卷积核大小
+            s: 步长
+        """
+        super().__init__()
+        c_ = c2 // 2
+        
+        self.conv = nn.Sequential(
+            GhostConv(c1, c_, 1, 1),  # 点卷积
+            nn.Conv2d(c_, c_, k, s, k // 2, groups=c_, bias=False) if s == 2 else nn.Identity(),  # 深度卷积
+            nn.BatchNorm2d(c_) if s == 2 else nn.Identity(),
+            GhostConv(c_, c2, 1, 1, act=False)  # 点卷积
+        )
+        
+        # 残差连接
+        self.shortcut = nn.Sequential(
+            nn.Conv2d(c1, c1, k, s, k // 2, groups=c1, bias=False),
+            nn.BatchNorm2d(c1),
+            nn.Conv2d(c1, c2, 1, 1, bias=False),
+            nn.BatchNorm2d(c2)
+        ) if s == 2 or c1 != c2 else nn.Identity()
+    
+    def forward(self, x):
+        return self.conv(x) + self.shortcut(x)
+
+
+class C3Ghost(nn.Module):
+    """C3Ghost模块 - 基于Ghost卷积的C3结构
+    
+    结合C3结构和Ghost卷积的优势：
+    - 保持C3的特征融合能力
+    - 利用Ghost卷积减少计算量
+    - 提升计算效率，适合资源受限环境
+    
+    Reference: FastTracker论文中的C3Ghost设计
+    """
+    
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
+        """初始化C3Ghost模块
+        
+        Args:
+            c1: 输入通道数
+            c2: 输出通道数
+            n: 瓶颈块数量
+            shortcut: 是否使用残差连接
+            g: 分组数
+            e: 扩展比例
+        """
+        super().__init__()
+        c_ = int(c2 * e)  # 隐藏层通道数
+        
+        # 输入卷积
+        self.cv1 = GhostConv(c1, c_, 1, 1)
+        self.cv2 = GhostConv(c1, c_, 1, 1)
+        
+        # Ghost瓶颈块序列
+        self.m = nn.Sequential(
+            *[GhostBottleneck(c_, c_, 3, 1) for _ in range(n)]
+        )
+        
+        # 输出卷积
+        self.cv3 = GhostConv(2 * c_, c2, 1, 1)
+    
+    def forward(self, x):
+        """前向传播"""
+        return self.cv3(torch.cat([self.m(self.cv1(x)), self.cv2(x)], 1))
+
+
+class SimAMAttention(nn.Module):
+    """Simple Parameter-Free Attention Module (SimAM)
+    
+    基于YOLO-SLD论文的SimAM注意力机制实现
+    - 参数无关设计，不增加模型参数量
+    - 通过能量函数计算3D注意力权重
+    - 有效抑制背景干扰，提升小目标检测性能
+    
+    Reference: YOLO-SLD: An Attention Mechanism-Improved YOLO for License Plate Detection
+    """
+    
+    def __init__(self, channels: int = None, e_lambda: float = 1e-4):
+        """初始化SimAM注意力模块
+        
+        Args:
+            channels: 输入通道数（SimAM中不使用，保持接口一致性）
+            e_lambda: 能量函数中的稳定性参数，防止除零
+        """
+        super().__init__()
+        self.activation = nn.Sigmoid()
+        self.e_lambda = e_lambda
+    
+    def forward(self, x):
+        """SimAM前向传播 - 优化版本
+        
+        Args:
+            x: 输入特征图 [B, C, H, W]
+            
+        Returns:
+            增强后的特征图 [B, C, H, W]
+        """
+        b, c, h, w = x.size()
+        
+        # 优化的SimAM实现 - 减少内存分配和计算复杂度
+        # 将特征图重塑为 [B, C, H*W] 以便高效计算
+        x_flat = x.view(b, c, -1)
+        
+        # 一次性计算均值和方差，避免多次遍历
+        x_mean = x_flat.mean(dim=2, keepdim=True)  # [B, C, 1]
+        x_var = x_flat.var(dim=2, keepdim=True, unbiased=False)  # [B, C, 1]
+        
+        # 重塑回原始空间维度
+        x_mean = x_mean.view(b, c, 1, 1)
+        x_var = x_var.view(b, c, 1, 1)
+        
+        # 计算标准化的差值
+        x_minus_mu_square = (x - x_mean).pow(2)
+        
+        # 优化的能量函数计算
+        # 使用更稳定的数值计算方式
+        energy = x_minus_mu_square / (4 * (x_var + self.e_lambda)) + 0.5
+        
+        # 应用sigmoid激活得到注意力权重
+        attention_weights = self.activation(energy)
+        
+        # 将注意力权重应用到原始特征图
+        return x * attention_weights
+
+
 class TransformerBlock(nn.Module):
     """Transformer块"""
     
@@ -162,7 +436,7 @@ class TransformerBlock(nn.Module):
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
         
-        self.activation = nn.GELU()
+        self.activation = MishVariants.adaptive_mish(learnable=True)
     
     def forward(self, src):
         # Self-attention
@@ -512,14 +786,355 @@ class SelfSupervisedPretraining:
         
         # 创建标签（对角线为正样本）
         batch_size = features1.size(0)
-        labels = torch.arange(batch_size, device=features1.device)
+        labels = torch.arange(batch_size).to(features1.device)
         
         # 计算交叉熵损失
         loss = F.cross_entropy(similarity_matrix, labels)
-        
         return loss
     
-    def masked_image_modeling_loss(self, 
+    def masked_image_modeling_loss(self, original: torch.Tensor, reconstructed: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        """计算掩码图像建模损失"""
+        # 只在掩码区域计算损失
+        loss = F.mse_loss(reconstructed * mask, original * mask)
+        return loss
+
+
+class IGDModule(nn.Module):
+    """IGD（智能汇聚与分发）模块 - 增强版
+    
+    改进YOLOv8的Neck结构，实现跨尺度特征更全面的交互与融合
+    基于FastTracker论文的设计思想，增加了多项优化
+    
+    Enhanced Features:
+    - 多尺度特征聚合：P3, P4, P5层特征融合
+    - 自适应权重分配：动态调整不同尺度的重要性
+    - 双向特征流：上采样和下采样双向信息传递
+    - 注意力增强：集成SimAM注意力机制
+    - 残差连接：保持特征传递的稳定性
+    - 多层次融合：增加深度特征交互
+    - 通道注意力：优化通道间的特征重要性
+    """
+    
+    def __init__(self, channels: List[int] = [256, 512, 1024], enhanced_fusion: bool = True):
+        """初始化IGD模块
+        
+        Args:
+            channels: 不同尺度的通道数 [P3, P4, P5]
+            enhanced_fusion: 是否启用增强特征融合
+        """
+        super().__init__()
+        self.channels = channels
+        self.enhanced_fusion = enhanced_fusion
+        self.unified_channels = 256
+        
+        # 特征对齐卷积 - 增强版
+        self.align_convs = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv2d(c, self.unified_channels, 1, 1, bias=False),
+                nn.BatchNorm2d(self.unified_channels),
+                Mish(),
+                # 添加深度可分离卷积增强特征表达
+                nn.Conv2d(self.unified_channels, self.unified_channels, 3, 1, 1, 
+                         groups=self.unified_channels, bias=False),
+                nn.BatchNorm2d(self.unified_channels),
+                nn.Conv2d(self.unified_channels, self.unified_channels, 1, 1, bias=False),
+                nn.BatchNorm2d(self.unified_channels),
+                Mish()
+            ) for c in channels
+        ])
+        
+        # 改进的上采样模块 - 使用转置卷积替代简单插值
+        self.upsample_convs = nn.ModuleList([
+            nn.Sequential(
+                nn.ConvTranspose2d(self.unified_channels, self.unified_channels, 4, 2, 1, bias=False),
+                nn.BatchNorm2d(self.unified_channels),
+                Mish()
+            ) for _ in range(2)  # P4->P3, P5->P4
+        ])
+        
+        # 改进的下采样模块
+        self.downsample_convs = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv2d(self.unified_channels, self.unified_channels, 3, 2, 1, bias=False),
+                nn.BatchNorm2d(self.unified_channels),
+                Mish(),
+                # 添加额外的特征增强
+                nn.Conv2d(self.unified_channels, self.unified_channels, 1, 1, bias=False),
+                nn.BatchNorm2d(self.unified_channels),
+                Mish()
+            ) for _ in range(2)  # P3->P4, P4->P5
+        ])
+        
+        # 增强的特征融合卷积
+        if self.enhanced_fusion:
+            # 多层次特征融合
+            self.fusion_convs = nn.ModuleList([
+                nn.Sequential(
+                    # 第一层融合
+                    nn.Conv2d(self.unified_channels * 3, self.unified_channels * 2, 3, 1, 1, bias=False),
+                    nn.BatchNorm2d(self.unified_channels * 2),
+                    Mish(),
+                    # 第二层融合
+                    nn.Conv2d(self.unified_channels * 2, self.unified_channels, 3, 1, 1, bias=False),
+                    nn.BatchNorm2d(self.unified_channels),
+                    Mish(),
+                    # 残差连接准备
+                    nn.Conv2d(self.unified_channels, self.unified_channels, 1, 1, bias=False),
+                    nn.BatchNorm2d(self.unified_channels)
+                ) for _ in range(3)
+            ])
+        else:
+            # 原始融合方式
+            self.fusion_convs = nn.ModuleList([
+                nn.Sequential(
+                    nn.Conv2d(self.unified_channels * 3, self.unified_channels, 3, 1, 1, bias=False),
+                    nn.BatchNorm2d(self.unified_channels),
+                    Mish()
+                ) for _ in range(3)
+            ])
+        
+        # 增强的自适应权重生成 - 添加通道注意力
+        self.weight_generator = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(self.unified_channels * 3, self.unified_channels, 1, 1, bias=False),
+            nn.ReLU(),
+            nn.Conv2d(self.unified_channels, self.unified_channels // 4, 1, 1, bias=False),
+            nn.ReLU(),
+            nn.Conv2d(self.unified_channels // 4, 3, 1, 1, bias=False),
+            nn.Softmax(dim=1)
+        )
+        
+        # 通道注意力模块
+        self.channel_attention = nn.ModuleList([
+            nn.Sequential(
+                nn.AdaptiveAvgPool2d(1),
+                nn.Conv2d(self.unified_channels, self.unified_channels // 16, 1, bias=False),
+                nn.ReLU(),
+                nn.Conv2d(self.unified_channels // 16, self.unified_channels, 1, bias=False),
+                nn.Sigmoid()
+            ) for _ in range(3)
+        ])
+        
+        # SimAM注意力 - 保持原有设计
+        self.attention = nn.ModuleList([
+            SimAMAttention() for _ in range(3)
+        ])
+        
+        # 输出卷积
+        self.output_convs = nn.ModuleList([
+            nn.Sequential(
+                nn.Conv2d(256, c, 3, 1, 1, bias=False),
+                nn.BatchNorm2d(c),
+                Mish()
+            ) for c in channels
+        ])
+    
+    def forward(self, features: List[torch.Tensor]) -> List[torch.Tensor]:
+        """增强版前向传播
+        
+        Args:
+            features: 多尺度特征列表 [P3, P4, P5]
+            
+        Returns:
+            增强后的多尺度特征列表
+        """
+        # 特征对齐到统一通道数
+        aligned_features = []
+        for i, feat in enumerate(features):
+            aligned = self.align_convs[i](feat)
+            aligned_features.append(aligned)
+        
+        # 获取特征尺寸
+        p3, p4, p5 = aligned_features
+        
+        # 改进的多尺度特征变换
+        # 上采样：使用学习的转置卷积
+        p4_up = self.upsample_convs[0](p4)  # P4 -> P3尺寸
+        p5_up_to_p4 = self.upsample_convs[1](p5)  # P5 -> P4尺寸
+        p5_up = self.upsample_convs[0](p5_up_to_p4)  # P4尺寸 -> P3尺寸
+        
+        # 下采样：使用学习的卷积
+        p3_down1 = self.downsample_convs[0](p3)  # P3 -> P4尺寸
+        p3_down2 = self.downsample_convs[1](p3_down1)  # P4尺寸 -> P5尺寸
+        p4_down = self.downsample_convs[1](p4)  # P4 -> P5尺寸
+        
+        # 增强的多尺度特征融合
+        # P3层融合 - 集成来自所有尺度的信息
+        p3_fused_features = torch.cat([p3, p4_up, p5_up], dim=1)
+        p3_weights = self.weight_generator(p3_fused_features)
+        p3_weighted = p3_fused_features * p3_weights.repeat(1, self.unified_channels, 1, 1)
+        p3_fused = self.fusion_convs[0](p3_weighted)
+        
+        # 添加残差连接（如果启用增强融合）
+        if self.enhanced_fusion:
+            p3_fused = p3_fused + p3  # 残差连接
+            p3_fused = Mish()(p3_fused)  # 激活
+        
+        # 应用通道注意力
+        p3_channel_att = self.channel_attention[0](p3_fused)
+        p3_fused = p3_fused * p3_channel_att
+        
+        # 应用SimAM注意力
+        p3_out = self.attention[0](p3_fused)
+        
+        # P4层融合 - 集成来自所有尺度的信息
+        p4_fused_features = torch.cat([p3_down1, p4, p5_up_to_p4], dim=1)
+        p4_weights = self.weight_generator(p4_fused_features)
+        p4_weighted = p4_fused_features * p4_weights.repeat(1, self.unified_channels, 1, 1)
+        p4_fused = self.fusion_convs[1](p4_weighted)
+        
+        # 添加残差连接（如果启用增强融合）
+        if self.enhanced_fusion:
+            p4_fused = p4_fused + p4  # 残差连接
+            p4_fused = Mish()(p4_fused)  # 激活
+        
+        # 应用通道注意力
+        p4_channel_att = self.channel_attention[1](p4_fused)
+        p4_fused = p4_fused * p4_channel_att
+        
+        # 应用SimAM注意力
+        p4_out = self.attention[1](p4_fused)
+        
+        # P5层融合 - 集成来自所有尺度的信息
+        p5_fused_features = torch.cat([p3_down2, p4_down, p5], dim=1)
+        p5_weights = self.weight_generator(p5_fused_features)
+        p5_weighted = p5_fused_features * p5_weights.repeat(1, self.unified_channels, 1, 1)
+        p5_fused = self.fusion_convs[2](p5_weighted)
+        
+        # 添加残差连接（如果启用增强融合）
+        if self.enhanced_fusion:
+            p5_fused = p5_fused + p5  # 残差连接
+            p5_fused = Mish()(p5_fused)  # 激活
+        
+        # 应用通道注意力
+        p5_channel_att = self.channel_attention[2](p5_fused)
+        p5_fused = p5_fused * p5_channel_att
+        
+        # 应用SimAM注意力
+        p5_out = self.attention[2](p5_fused)
+        
+        # 输出特征恢复到原始通道数
+        outputs = [
+            self.output_convs[0](p3_out),
+            self.output_convs[1](p4_out),
+            self.output_convs[2](p5_out)
+        ]
+        
+        return outputs
+
+
+class AdaptiveDynamicROI(nn.Module):
+    """自适应动态ROI机制
+    
+    结合车辆转向角和速度信息，动态调整检测区域
+    提高计算资源利用效率，适用于嵌入式设备
+    
+    Reference: FastTracker论文中的自适应ROI设计
+    """
+    
+    def __init__(self, input_size: Tuple[int, int] = (640, 640)):
+        """初始化自适应动态ROI模块
+        
+        Args:
+            input_size: 输入图像尺寸 (H, W)
+        """
+        super().__init__()
+        self.input_size = input_size
+        self.h, self.w = input_size
+        
+        # ROI预测网络
+        self.roi_predictor = nn.Sequential(
+            nn.Linear(4, 64),  # 输入：转向角、速度、前一帧ROI中心
+            nn.ReLU(),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 4),  # 输出：ROI边界框 (x1, y1, x2, y2)
+            nn.Sigmoid()
+        )
+        
+        # ROI尺寸约束
+        self.min_roi_size = 0.3  # 最小ROI占图像比例
+        self.max_roi_size = 1.0  # 最大ROI占图像比例
+    
+    def forward(self, 
+                vehicle_info: torch.Tensor, 
+                prev_roi: Optional[torch.Tensor] = None) -> torch.Tensor:
+        """前向传播
+        
+        Args:
+            vehicle_info: 车辆信息 [batch_size, 2] (转向角, 速度)
+            prev_roi: 前一帧ROI [batch_size, 4] (x1, y1, x2, y2)
+            
+        Returns:
+            动态ROI边界框 [batch_size, 4]
+        """
+        batch_size = vehicle_info.size(0)
+        
+        # 如果没有前一帧ROI，使用默认中心区域
+        if prev_roi is None:
+            prev_roi = torch.tensor([[0.25, 0.25, 0.75, 0.75]]).repeat(batch_size, 1).to(vehicle_info.device)
+        
+        # 构建输入特征
+        input_features = torch.cat([vehicle_info, prev_roi[:, :2]], dim=1)  # 转向角、速度、前一帧ROI中心
+        
+        # 预测ROI偏移
+        roi_offset = self.roi_predictor(input_features)
+        
+        # 计算新的ROI
+        # 基于车辆状态调整ROI位置和大小
+        steering_angle = vehicle_info[:, 0:1]
+        speed = vehicle_info[:, 1:2]
+        
+        # 根据转向角调整ROI水平位置
+        horizontal_shift = steering_angle * 0.2  # 转向角影响水平偏移
+        
+        # 根据速度调整ROI垂直位置和大小
+        vertical_shift = speed * 0.1  # 速度影响垂直偏移
+        size_factor = 0.5 + speed * 0.3  # 速度越快，ROI越大
+        
+        # 计算ROI边界
+        center_x = 0.5 + horizontal_shift
+        center_y = 0.5 + vertical_shift
+        
+        roi_width = torch.clamp(size_factor * 0.6, self.min_roi_size, self.max_roi_size)
+        roi_height = torch.clamp(size_factor * 0.6, self.min_roi_size, self.max_roi_size)
+        
+        # 构建ROI边界框
+        x1 = torch.clamp(center_x - roi_width / 2, 0, 1)
+        y1 = torch.clamp(center_y - roi_height / 2, 0, 1)
+        x2 = torch.clamp(center_x + roi_width / 2, 0, 1)
+        y2 = torch.clamp(center_y + roi_height / 2, 0, 1)
+        
+        roi = torch.stack([x1.squeeze(), y1.squeeze(), x2.squeeze(), y2.squeeze()], dim=1)
+        
+        return roi
+    
+    def apply_roi_mask(self, image: torch.Tensor, roi: torch.Tensor) -> torch.Tensor:
+        """应用ROI掩码到图像
+        
+        Args:
+            image: 输入图像 [batch_size, C, H, W]
+            roi: ROI边界框 [batch_size, 4] (归一化坐标)
+            
+        Returns:
+            应用ROI后的图像
+        """
+        batch_size, c, h, w = image.size()
+        
+        # 创建ROI掩码
+        mask = torch.zeros_like(image)
+        
+        for i in range(batch_size):
+            x1 = int(roi[i, 0] * w)
+            y1 = int(roi[i, 1] * h)
+            x2 = int(roi[i, 2] * w)
+            y2 = int(roi[i, 3] * h)
+            
+            mask[i, :, y1:y2, x1:x2] = 1.0
+        
+        return image * mask
+    
+    def masked_image_modeling_loss(self,
                                  original_images: torch.Tensor,
                                  reconstructed_images: torch.Tensor,
                                  mask: torch.Tensor) -> torch.Tensor:
@@ -707,7 +1322,7 @@ if __name__ == "__main__":
         'backbone_depth': [3, 4, 5, 6],
         'neck_channels': [128, 256, 512],
         'head_layers': [2, 3, 4],
-        'activation': ['ReLU', 'SiLU', 'Mish'],
+        'activation': ['enhanced_mish', 'fast_mish', 'adaptive_mish', 'standard_mish'],
         'attention_type': ['SE', 'CBAM', 'ECA'],
         'use_transformer': [True, False],
         'transformer_layers': [3, 6, 9]

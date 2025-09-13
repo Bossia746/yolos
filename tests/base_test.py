@@ -42,22 +42,26 @@ try:
 except ImportError:
     EventBus = None
 
-# Mock missing test modules
-class TestConfig:
-    """Mock test configuration."""
-    def __init__(self):
-        self.test_data_dir = Path("tests/data")
-        self.temp_dir = Path("temp")
-        self.log_level = "DEBUG"
-    
-    def get_test_config(self):
-        """Get test configuration dictionary."""
-        return {
-            'test_data_dir': str(self.test_data_dir),
-            'temp_dir': str(self.temp_dir),
-            'log_level': self.log_level,
-            'mock_mode': True
-        }
+# Import test configuration
+try:
+    from .test_config import YOLOSTestConfig
+except ImportError:
+    # Fallback mock configuration
+    class YOLOSTestConfig:
+        """Mock test configuration."""
+        def __init__(self):
+            self.test_data_dir = Path("tests/data")
+            self.temp_dir = Path("temp")
+            self.log_level = "DEBUG"
+        
+        def get_test_config(self):
+            """Get test configuration dictionary."""
+            return {
+                'test_data_dir': str(self.test_data_dir),
+                'temp_dir': str(self.temp_dir),
+                'log_level': self.log_level,
+                'mock_mode': True
+            }
 
 class MockDataGenerator:
     """Mock data generator for testing."""
@@ -96,7 +100,7 @@ class BaseTest(unittest.TestCase):
         cls.temp_dir = tempfile.mkdtemp(prefix='yolos_test_')
         
         # 初始化测试配置
-        cls.test_config = TestConfig()
+        cls.test_config = YOLOSTestConfig()
         
         # 初始化模拟数据生成器
         cls.mock_data = MockDataGenerator()
@@ -239,6 +243,8 @@ class BasePluginTest(BaseTest):
         super().setUp()
         
         # 创建插件管理器
+        if PluginManager is None:
+            self.skipTest("PluginManager not available")
         self.plugin_manager = PluginManager()
         
         # 创建模拟插件配置

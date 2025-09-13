@@ -1,4 +1,6 @@
-"""平台适配器"""
+"""平台适配器模块
+提供不同硬件平台的统一接口和适配功能，集成硬件抽象层
+"""
 
 import os
 import sys
@@ -11,8 +13,36 @@ from dataclasses import dataclass
 from enum import Enum
 import threading
 import time
+from pathlib import Path
 
 from .event_bus import EventBus
+
+# 添加项目根目录到路径
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+# 导入硬件抽象层
+try:
+    from src.core.hardware_abstraction import (
+        HardwareAbstractionLayer, ComputeType,
+        CameraType, ConnectivityType
+    )
+except ImportError as e:
+    logging.warning(f"硬件抽象层导入失败: {e}")
+    HardwareAbstractionLayer = None
+
+# 导入平台实现
+try:
+    from src.platforms import (
+        ESP32Platform, create_esp32_platform,
+        K230Platform, create_k230_platform,
+        RaspberryPiPlatform, create_raspberry_pi_platform
+    )
+except ImportError as e:
+    logging.warning(f"部分平台实现导入失败: {e}")
+    ESP32Platform = None
+    K230Platform = None
+    RaspberryPiPlatform = None
 
 
 class PlatformType(Enum):
@@ -67,14 +97,19 @@ class ResourceUsage:
 
 
 class BasePlatformAdapter(ABC):
-    """平台适配器基类"""
+    """平台适配器基类，集成硬件抽象层"""
     
-    def __init__(self, event_bus: EventBus = None):
+    def __init__(self, event_bus: EventBus = None, hardware_layer: Optional['HardwareAbstractionLayer'] = None):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.event_bus = event_bus
         self._hardware_info: Optional[HardwareInfo] = None
         self._monitoring_thread: Optional[threading.Thread] = None
         self._monitoring_active = False
+        
+        # 硬件抽象层
+        self.hardware_layer = hardware_layer
+        self._initialized = False
+        self._capabilities = None
         
     @abstractmethod
     def get_platform_type(self) -> PlatformType:
@@ -111,12 +146,19 @@ class BasePlatformAdapter(ABC):
         try:
             self.logger.info(f"Initializing {self.get_platform_type().value} platform adapter")
             
+            # 初始化硬件抽象层
+            if self.hardware_layer:
+                if not self.hardware_layer.initialize():
+                    self.logger.error("硬件抽象层初始化失败")
+                    return False
+            
             # 检测硬件
             self._hardware_info = self.detect_hardware()
             
             # 启动资源监控
             self.start_monitoring()
             
+            self._initialized = True
             self.logger.info("Platform adapter initialized successfully")
             return True
             
@@ -289,6 +331,9 @@ class BasePlatformAdapter(ABC):
 
 class WindowsPlatformAdapter(BasePlatformAdapter):
     """Windows平台适配器"""
+    
+    def __init__(self, event_bus: EventBus = None, hardware_layer: Optional['HardwareAbstractionLayer'] = None):
+        super().__init__(event_bus, hardware_layer)
     
     def get_platform_type(self) -> PlatformType:
         return PlatformType.WINDOWS
@@ -469,6 +514,9 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
 
 class LinuxPlatformAdapter(BasePlatformAdapter):
     """Linux平台适配器"""
+    
+    def __init__(self, event_bus: EventBus = None, hardware_layer: Optional['HardwareAbstractionLayer'] = None):
+        super().__init__(event_bus, hardware_layer)
     
     def get_platform_type(self) -> PlatformType:
         # 检测是否为树莓派
@@ -706,6 +754,9 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
 class MacOSPlatformAdapter(BasePlatformAdapter):
     """macOS平台适配器"""
     
+    def __init__(self, event_bus: EventBus = None, hardware_layer: Optional['HardwareAbstractionLayer'] = None):
+        super().__init__(event_bus, hardware_layer)
+    
     def get_platform_type(self) -> PlatformType:
         return PlatformType.MACOS
     
@@ -896,11 +947,12 @@ class PlatformAdapterFactory:
     """平台适配器工厂"""
     
     @staticmethod
-    def create_adapter(event_bus: EventBus = None) -> BasePlatformAdapter:
+    def create_adapter(event_bus: EventBus = None, hardware_layer: Optional['HardwareAbstractionLayer'] = None) -> BasePlatformAdapter:
         """创建平台适配器
         
         Args:
             event_bus: 事件总线
+            hardware_layer: 硬件抽象层
             
         Returns:
             BasePlatformAdapter: 平台适配器实例
@@ -908,11 +960,11 @@ class PlatformAdapterFactory:
         system = platform.system().lower()
         
         if system == 'windows':
-            return WindowsPlatformAdapter(event_bus)
+            return WindowsPlatformAdapter(event_bus, hardware_layer)
         elif system == 'linux':
-            return LinuxPlatformAdapter(event_bus)
+            return LinuxPlatformAdapter(event_bus, hardware_layer)
         elif system == 'darwin':
-            return MacOSPlatformAdapter(event_bus)
+            return MacOSPlatformAdapter(event_bus, hardware_layer)
         else:
             raise ValueError(f"Unsupported platform: {system}")
     
